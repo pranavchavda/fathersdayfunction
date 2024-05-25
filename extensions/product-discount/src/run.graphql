@@ -1,0 +1,133 @@
+# query RunInput {
+#   discountNode {
+#     metafield(namespace: "$app:product-discount", key: "function-configuration") {
+#       value
+#     }
+#   }
+# }
+query RunInput {
+  cart {
+    lines {
+      quantity
+      cost {
+        amountPerQuantity {
+          amount
+          currencyCode
+        }
+        subtotalAmount {
+          amount
+          currencyCode
+        }
+        totalAmount {
+          amount
+          currencyCode
+        }
+      }
+      merchandise {
+        __typename
+        ... on ProductVariant {
+          id
+          product {
+            handle
+
+            isGiftCard
+            hasTags(
+              tags: [
+                "YGroup"
+                "YGroup_cody"
+                "YGroup_DolceVita"
+                "YGroup_Scody"
+                "YGroup_H1"
+                "YGroup_ekk43"
+                "YGroup_Stark"
+                "YGroup_coffeebox"
+                "ascaso"
+                "baratza"
+                "breville"
+                "fellow"
+                "codyscody"
+                "gift_card"
+                "la-marzocco"
+                "lelit"
+                "acaia"
+                "jura"
+                "latte-art-factory"
+                "puqpress"
+                "ecm"
+                "profitec"
+                "miele"
+                "openbox"
+              ]
+            ) {
+              tag
+              hasTag
+            }
+            hasAnyTag(
+              tags: [
+                "YGroup"
+                "YGroup_cody"
+                "YGroup_DolceVita"
+                "YGroup_Scody"
+                "YGroup_H1"
+                "YGroup_ekk43"
+                "YGroup_Stark"
+                "YGroup_coffeebox"
+                "ascaso"
+                "baratza"
+                "breville"
+                "fellow"
+                "codyscody"
+                "gift_card"
+                "la-marzocco"
+                "lelit"
+                "acaia"
+                "jura"
+                "latte-art-factory"
+                "puqpress"
+                "ecm"
+                "profitec"
+                "miele"
+                "openbox"
+              ]
+            )
+          }
+        }
+      }
+    }
+  }
+  discountNode {
+    metafield(
+      namespace: "$app:product-discount"
+      key: "function-configuration"
+    ) {
+      value
+    }
+  }
+}
+
+# query RunInput {
+#   cart {
+#     lines {
+#       quantity
+#       merchandise {
+#         __typename
+#         ... on ProductVariant {
+#           id
+#           value
+#           product {
+#             tags
+#           }
+#         }
+#       }
+#     }
+#     currency
+#   }
+#   discountNode {
+#     metafield(
+#       namespace: "$app:product-discount"
+#       key: "function-configuration"
+#     ) {
+#       value
+#     }
+#   }
+# }
