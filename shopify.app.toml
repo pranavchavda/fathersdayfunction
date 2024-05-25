@@ -3,7 +3,7 @@
 client_id = "5b89e0a11165b3550c6a323daad996f1"
 name = "Fathers Day Tiered Discounts"
 handle = "tiered-discounts-idc-fathers-day"
-application_url = "https://vocal-xbox-include-evanescence.trycloudflare.com"
+application_url = "https://online-say-feedback-july.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "write_discounts,write_products"
 
 [auth]
 redirect_urls = [
-  "https://vocal-xbox-include-evanescence.trycloudflare.com/auth/callback",
-  "https://vocal-xbox-include-evanescence.trycloudflare.com/auth/shopify/callback",
-  "https://vocal-xbox-include-evanescence.trycloudflare.com/api/auth/callback"
+  "https://online-say-feedback-july.trycloudflare.com/auth/callback",
+  "https://online-say-feedback-july.trycloudflare.com/auth/shopify/callback",
+  "https://online-say-feedback-july.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
