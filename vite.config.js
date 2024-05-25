@@ -14,8 +14,9 @@ if (
   delete process.env.HOST;
 }
 
-const host = new URL(process.env.SHOPIFY_APP_URL || "http://localhost")
-  .hostname;
+const host = new URL(
+  process.env.SHOPIFY_APP_URL || "139-177-197-236.ip.linodeusercontent.com",
+).hostname;
 let hmrConfig;
 
 if (host === "localhost") {

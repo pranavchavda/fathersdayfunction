@@ -3,11 +3,11 @@
 client_id = "5b89e0a11165b3550c6a323daad996f1"
 name = "Fathers Day Tiered Discounts"
 handle = "tiered-discounts-idc-fathers-day"
-application_url = "https://linking-antonio-educational-ago.trycloudflare.com"
+application_url = "https://139-177-197-236.ip.linodeusercontent.com"
 embedded = true
 
 [build]
-automatically_update_urls_on_dev = true
+automatically_update_urls_on_dev = false
 dev_store_url = "idrinkcoffee-dev.myshopify.com"
 include_config_on_deploy = true
 
@@ -17,9 +17,9 @@ scopes = "write_discounts,write_products"
 
 [auth]
 redirect_urls = [
-  "https://linking-antonio-educational-ago.trycloudflare.com/auth/callback",
-  "https://linking-antonio-educational-ago.trycloudflare.com/auth/shopify/callback",
-  "https://linking-antonio-educational-ago.trycloudflare.com/api/auth/callback"
+  "https://139-177-197-236.ip.linodeusercontent.com/auth/callback",
+  "https://139-177-197-236.ip.linodeusercontent.com/auth/shopify/callback",
+  "https://139-177-197-236.ip.linodeusercontent.com/api/auth/callback"
 ]
 
 [webhooks]
