@@ -3,7 +3,7 @@
 client_id = "5b89e0a11165b3550c6a323daad996f1"
 name = "Fathers Day Tiered Discounts"
 handle = "tiered-discounts-idc-fathers-day"
-application_url = "https://139-177-197-236.ip.linodeusercontent.com"
+application_url = "https://tier-discount.idrinkcoffee.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "write_discounts,write_products"
 
 [auth]
 redirect_urls = [
-  "https://139-177-197-236.ip.linodeusercontent.com/auth/callback",
-  "https://139-177-197-236.ip.linodeusercontent.com/auth/shopify/callback",
-  "https://139-177-197-236.ip.linodeusercontent.com/api/auth/callback"
+  "https://tier-discount.idrinkcoffee.com/auth/callback",
+  "https://tier-discount.idrinkcoffee.com/auth/shopify/callback",
+  "https://tier-discount.idrinkcoffee.com/api/auth/callback"
 ]
 
 [webhooks]

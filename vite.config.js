@@ -15,8 +15,7 @@ if (
 }
 
 const host = new URL(
-  process.env.SHOPIFY_APP_URL ||
-    "https://139-177-197-236.ip.linodeusercontent.com",
+  process.env.SHOPIFY_APP_URL || "https://tier-discount.idrinkcoffee.com",
 ).hostname;
 let hmrConfig;
 
