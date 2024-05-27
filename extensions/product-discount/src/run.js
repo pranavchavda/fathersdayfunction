@@ -19,7 +19,6 @@ const EXCLUDED_TAGS = [
   "YGroup_coffeebox",
   "ecm",
   "profitec",
-  "miele",
 ].map((tag) => tag.toLowerCase());
 
 const FULL_EXCLUSIONS = [
@@ -34,8 +33,12 @@ const FULL_EXCLUSIONS = [
   "YGroup_Scody",
   "YGroup_cody",
   "YGroup_DolceVita",
+  "fd2024combo",
+  "fd2024grinder",
+  "YGroup_silenzio",
   "gift_card",
   "openbox",
+  "miele",
 ].map((tag) => tag.toLowerCase());
 
 const TIERED_DISCOUNTS = {
