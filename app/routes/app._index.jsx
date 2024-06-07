@@ -64,6 +64,7 @@ export const action = async ({ request }) => {
       "YGroup_cody",
       "YGroup_DolceVita",
       "gift_card",
+      "fd2024flash",
     ],
     tieredDiscounts: {
       2000: 225,

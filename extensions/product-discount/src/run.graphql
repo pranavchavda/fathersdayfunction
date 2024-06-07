@@ -56,6 +56,7 @@ query RunInput {
                 "gift_card"
                 "openbox"
                 "miele"
+                "fd2024flash"
               ]
             )
           }
