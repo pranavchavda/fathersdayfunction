@@ -1,8 +1,8 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "5b89e0a11165b3550c6a323daad996f1"
-name = "Fathers Day Tiered Discounts"
-handle = "tiered-discounts-idc-fathers-day"
+name = "Tiered Discounts and Other Functions"
+handle = "tiered-discounts-idc"
 application_url = "https://tier-discount.idrinkcoffee.com"
 embedded = true
 
