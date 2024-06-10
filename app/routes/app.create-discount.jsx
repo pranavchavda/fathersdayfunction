@@ -91,12 +91,14 @@ export const action = async ({ request }) => {
         title: "${title}",
         functionId: "f23d62fa-40f7-49bc-9329-86e1fc269e7e",
         startsAt: "${startDate}",
-        endsAt: "${endDate}"
+        endsAt: "${endDate}",
          metafields: {namespace: "$app:product-discount", key: "function-configuration", value: ${JSON.stringify(metaValue)}, type: "json"}
 
       }) {
          automaticAppDiscount {
           discountId
+          status
+
          }
          userErrors {
           field
@@ -217,7 +219,7 @@ export default function Index() {
                       overflowX="scroll"
                     >
                       <pre style={{ margin: 0 }}>
-                        <code>{JSON.stringify(fetcher, null, 2)}</code>
+                        <code>{JSON.stringify(actionData, null, 2)}</code>
                       </pre>
                     </Box>
                   </>
