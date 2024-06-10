@@ -92,7 +92,7 @@ export const action = async ({ request }) => {
         functionId: "f23d62fa-40f7-49bc-9329-86e1fc269e7e",
         startsAt: "${startDate}",
         endsAt: "${endDate}",
-         metafields: {namespace: "$app:product-discount", key: "function-configuration", value: ${JSON.stringify(metaValue)}, type: "json"}
+         metafields: {namespace: "product-discount", key: "function-configuration", value: ${JSON.stringify(metaValue)}, type: "json"}
 
       }) {
          automaticAppDiscount {
