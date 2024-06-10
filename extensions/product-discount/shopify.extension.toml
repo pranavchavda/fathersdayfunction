@@ -18,3 +18,8 @@ type = "function"
   [extensions.ui.paths]
   create = "/product-discount/app"
   details = "/product-discount/:functionId/:id"
+  
+  [extensions.input.variables]
+  namespace = "product-discount"
+  key = "function-configuration"
+

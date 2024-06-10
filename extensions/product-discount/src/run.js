@@ -296,14 +296,14 @@ export default function calculateApplicableCartTotal(cart) {
  * @param {number} applicableCartTotal The total price of eligible items in cents.
  * @returns {number} The discount amount in cents.
  */
-function calculateTieredDiscount(applicableCartTotal) {
-  const thresholds = Object.keys(TIERED_DISCOUNTS)
+function calculateTieredDiscount(applicableCartTotal, tieredDiscounts) {
+  const thresholds = Object.keys(tieredDiscounts)
     .map(Number)
     .sort((a, b) => b - a); // Sort thresholds in descending order
 
   for (const threshold of thresholds) {
     if (applicableCartTotal >= threshold) {
-      return TIERED_DISCOUNTS[threshold]; // Return discount in cents
+      return tieredDiscounts[threshold]; // Return discount in cents
     }
   }
 
@@ -381,11 +381,41 @@ function applyTieredDiscount(cart, discountAmount) {
  * @param {RunInput} input
  * @returns {FunctionRunResult}
  */
+// export function run(input) {
+//   const applicableCartTotal = calculateApplicableCartTotal(input.cart);
+//   console.log("applicableCartTotal", applicableCartTotal);
+//   const discountAmount = calculateTieredDiscount(applicableCartTotal);
+//   console.log("discountAmount", discountAmount);
+//   const discounts = applyTieredDiscount(input.cart, discountAmount);
+//   console.log("discounts", JSON.stringify(discounts));
+
+//   return {
+//     discountApplicationStrategy: DiscountApplicationStrategy.All,
+//     discounts: discounts,
+//   };
+// }
 export function run(input) {
+  // Step 1: Parse the `metafield` value from the input
+  const metafieldObject = JSON.parse(input.discountNode.metafield.value);
+
+  // Step 2: Extract `tieredDiscounts` from the parsed JSON object
+  const tieredDiscounts = metafieldObject.tieredDiscounts;
+  console.log("tieredDiscounts", JSON.stringify(tieredDiscounts));
+  console.log("TIERED_DISCOUNTS", JSON.stringify(TIERED_DISCOUNTS));
+
+  // Assuming `calculateApplicableCartTotal` doesn't need modification
   const applicableCartTotal = calculateApplicableCartTotal(input.cart);
   console.log("applicableCartTotal", applicableCartTotal);
-  const discountAmount = calculateTieredDiscount(applicableCartTotal);
+
+  // Step 3: Modify `calculateTieredDiscount` to accept `tieredDiscounts` as a parameter
+  // This step assumes you modify `calculateTieredDiscount` accordingly
+  const discountAmount = calculateTieredDiscount(
+    applicableCartTotal,
+    tieredDiscounts,
+  );
   console.log("discountAmount", discountAmount);
+
+  // Assuming `applyTieredDiscount` doesn't need modification
   const discounts = applyTieredDiscount(input.cart, discountAmount);
   console.log("discounts", JSON.stringify(discounts));
 

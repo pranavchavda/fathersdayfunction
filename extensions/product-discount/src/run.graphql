@@ -1,4 +1,4 @@
-query RunInput {
+query RunInput($excludedTags: [String!], $fullExclusions: [String!]) {
   cart {
     lines {
       quantity
@@ -22,53 +22,16 @@ query RunInput {
           id
           product {
             handle
-
             isGiftCard
-            hasExcludedTag: hasAnyTag(
-              tags: [
-                "la-marzocco"
-                "lelit"
-                "acaia"
-                "jura"
-                "latte-art-factory"
-                "puqpress"
-                "YGroup_coffeebox"
-                "ecm"
-                "profitec"
-              ]
-            )
-            hasFullyExcludedTag: hasAnyTag(
-              tags: [
-                "ascaso"
-                "baratza"
-                "breville"
-                "fellow"
-                "codyscody"
-                "YGroup_Stark"
-                "YGroup_ekk43"
-                "YGroup_H1"
-                "YGroup_Scody"
-                "YGroup_cody"
-                "YGroup_DolceVita"
-                "fd2024combo"
-                "fd2024grinder"
-                "YGroup_silenzio"
-                "gift_card"
-                "openbox"
-                "miele"
-                "fd2024flash"
-              ]
-            )
+            hasExcludedTag: hasAnyTag(tags: $excludedTags)
+            hasFullyExcludedTag: hasAnyTag(tags: $fullExclusions)
           }
         }
       }
     }
   }
   discountNode {
-    metafield(
-      namespace: "$app:product-discount"
-      key: "function-configuration"
-    ) {
+    metafield(namespace: "product-discount", key: "function-configuration") {
       value
     }
   }

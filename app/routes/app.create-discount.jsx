@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { json } from "@remix-run/node";
 import {
   Form,
@@ -23,13 +22,103 @@ import {
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
   return null;
 };
 
+// const metaValue = JSON.stringify({
+//   excludedTags: [
+//     "la-marzocco",
+//     "lelit",
+//     "acaia",
+//     "jura",
+//     "latte-art-factory",
+//     "puqpress",
+//     "YGroup_coffeebox",
+//     "ecm",
+//     "profitec",
+//     "miele",
+//     "openbox",
+//   ],
+//   fullExclusions: [
+//     "ascaso",
+//     "baratza",
+//     "breville",
+//     "fellow",
+//     "codyscody",
+//     "YGroup_Stark",
+//     "YGroup_ekk43",
+//     "YGroup_H1",
+//     "YGroup_Scody",
+//     "YGroup_cody",
+//     "YGroup_DolceVita",
+//     "gift_card",
+//     "fd2024flash",
+//   ],
+//   tieredDiscounts: {
+//     2000: 225,
+//     1350: 135,
+//     800: 80,
+//     400: 40,
+//     200: 20,
+//     100: 10,
+//   },
+//   usdTieredDiscounts: {
+//     2000: 225,
+//     1350: 135,
+//     800: 80,
+//     400: 40,
+//     200: 20,
+//     100: 10,
+//   },
+// });
+
+// export const action = async ({ request }) => {
+//   const { admin } = await authenticate.admin(request);
+//   const formData = await request.formData();
+//   const title = formData.get("title") ?? "Tier discount";
+//   const startDate = formData.get("startDate") ?? "2022-06-22T00:00:00";
+//   const endDate = formData.get("endDate") ?? "2022-06-22T23:59:59";
+//     // we'll get metaValue from the form now that we know it works
+
+//   const metaFieldValue = JSON.stringify(metaValue);
+
+//   const response = await admin.graphql(
+//     `#graphql
+//     mutation {
+//       discountAutomaticAppCreate(automaticAppDiscount: {
+//         title: "${title}",
+//         functionId: "f23d62fa-40f7-49bc-9329-86e1fc269e7e",
+//         startsAt: "${startDate}",
+//         metafields: {namespace: "product-discount", key: "function-configuration", value: ${metaFieldValue}, type: "json"},
+//         endsAt: "${endDate}",
+
+//       }) {
+//          automaticAppDiscount {
+//           discountId
+//           status
+
+//          }
+//          userErrors {
+//           field
+//           message
+//          }
+//       }
+//     },
+
+//     `,
+//   );
+
+//   const responseJson = await response.json();
+
+//   return json({
+//     response: responseJson,
+//   });
+// console log the mutation response
+//};
 export const action = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
   const formData = await request.formData();
@@ -37,80 +126,72 @@ export const action = async ({ request }) => {
   const startDate = formData.get("startDate") ?? "2022-06-22T00:00:00";
   const endDate = formData.get("endDate") ?? "2022-06-22T23:59:59";
 
-  const metaValue = JSON.stringify({
-    excludedTags: [
-      "la-marzocco",
-      "lelit",
-      "acaia",
-      "jura",
-      "latte-art-factory",
-      "puqpress",
-      "YGroup_coffeebox",
-      "ecm",
-      "profitec",
-      "miele",
-      "openbox",
-    ],
-    fullExclusions: [
-      "ascaso",
-      "baratza",
-      "breville",
-      "fellow",
-      "codyscody",
-      "YGroup_Stark",
-      "YGroup_ekk43",
-      "YGroup_H1",
-      "YGroup_Scody",
-      "YGroup_cody",
-      "YGroup_DolceVita",
-      "gift_card",
-      "fd2024flash",
-    ],
-    tieredDiscounts: {
-      2000: 225,
-      1350: 135,
-      800: 80,
-      400: 40,
-      200: 20,
-      100: 10,
-    },
-    usdTieredDiscounts: {
-      2000: 225,
-      1350: 135,
-      800: 80,
-      400: 40,
-      200: 20,
-      100: 10,
-    },
-  });
+  // Get metafield values from the form
+  const excludedTags =
+    formData
+      .get("excludedTags")
+      ?.split(",")
+      .map((tag) => tag.trim()) || [];
+  const fullExclusions =
+    formData
+      .get("fullExclusions")
+      ?.split(",")
+      .map((tag) => tag.trim()) || [];
+
+  // Parse tiered discounts from key-value pairs
+  const parseTieredDiscounts = (discountsString) => {
+    const discounts = {};
+    discountsString.split(",").forEach((pair) => {
+      const [key, value] = pair.split(":");
+      discounts[key.trim()] = parseInt(value.trim(), 10);
+    });
+    return discounts;
+  };
+
+  const tieredDiscounts = parseTieredDiscounts(
+    formData.get("tieredDiscounts") || "",
+  );
+  const usdTieredDiscounts = parseTieredDiscounts(
+    formData.get("usdTieredDiscounts") || "",
+  );
+
+  const metaValue = {
+    excludedTags,
+    fullExclusions,
+    tieredDiscounts,
+    usdTieredDiscounts,
+  };
 
   const response = await admin.graphql(
     `#graphql
-    mutation {
+    mutation CreateDiscount($title: String!, $startDate: DateTime!, $endDate: DateTime!, $metaFieldValue: String!) {
       discountAutomaticAppCreate(automaticAppDiscount: {
-        title: "${title}",
-        functionId: "f23d62fa-40f7-49bc-9329-86e1fc269e7e",
-        startsAt: "${startDate}",
-        endsAt: "${endDate}",
-         metafields: {namespace: "product-discount", key: "function-configuration", value: ${JSON.stringify(metaValue)}, type: "json"}
-
+        title: $title
+        functionId: "f23d62fa-40f7-49bc-9329-86e1fc269e7e"
+        startsAt: $startDate
+        metafields: {namespace: "product-discount", key: "function-configuration", value: $metaFieldValue, type: "json"}
+        endsAt: $endDate
       }) {
-         automaticAppDiscount {
+        automaticAppDiscount {
           discountId
           status
-
-         }
-         userErrors {
+        }
+        userErrors {
           field
           message
-         }
+        }
       }
-    },
-
+    }
     `,
+    {
+      variables: {
+        title,
+        startDate,
+        endDate,
+        metaFieldValue: JSON.stringify(metaValue),
+      },
+    },
   );
-
-  console.log(response);
 
   const responseJson = await response.json();
 
@@ -118,7 +199,6 @@ export const action = async ({ request }) => {
     response: responseJson,
   });
 };
-
 export default function Index() {
   const nav = useNavigation();
   const actionData = useActionData();
@@ -149,6 +229,17 @@ export default function Index() {
   const [title, setTitle] = useState("Tier discount");
   const [startDate, setStartDate] = useState("2022-06-22T00:00:00");
   const [endDate, setEndDate] = useState("2022-06-22T23:59:59");
+  const [excludedTags, setExcludedTags] = useState("");
+  const [fullExclusions, setFullExclusions] = useState("");
+  const [tieredDiscounts, setTieredDiscounts] = useState("");
+  const [usdTieredDiscounts, setUsdTieredDiscounts] = useState("");
+  const metaValue = {
+    excludedTags,
+    fullExclusions,
+    tieredDiscounts,
+    usdTieredDiscounts,
+  };
+  const metaFieldValue = JSON.stringify({ metaValue });
 
   return (
     <Page>
@@ -167,11 +258,10 @@ export default function Index() {
                     Shopify Admin GraphQL API.
                   </Text>
                   <Text variant="headingSm">
-                    Note that the exclusion tags are hardcoded in the function
-                    and will need to be edited from the code The end date, once
-                    set, can not be changed, a workaround would be to delete the
-                    discount from the discount section in the admin and create a
-                    new one with the same title and different end date
+                    Note that separate USD tiers aren't implemented, they are
+                    the same as the regular ones. Note when adding tiers, the
+                    key is the minimum amount and the value is the discount
+                    amount - ALL IN CENTS.
                   </Text>
                 </BlockStack>
                 <fetcher.Form onSubmit={handleSubmit}>
@@ -198,6 +288,35 @@ export default function Index() {
                       onChange={(value) => setEndDate(value)}
                       value={endDate}
                     />
+                    <TextField
+                      label="Excluded Tags"
+                      name="excludedTags"
+                      value={excludedTags}
+                      onChange={setExcludedTags}
+                      helpText="Enter comma-separated tags to exclude from the discount."
+                    />
+                    <TextField
+                      label="Full Exclusions"
+                      name="fullExclusions"
+                      value={fullExclusions}
+                      onChange={setFullExclusions}
+                      helpText="Enter comma-separated tags for full exclusion from the discount."
+                    />
+                    <TextField
+                      label="Tiered Discounts"
+                      name="tieredDiscounts"
+                      value={tieredDiscounts}
+                      onChange={setTieredDiscounts}
+                      helpText="Enter tiered discounts IN CENTS as key-value pairs, e.g., 200000:22500,135000:13500"
+                    />
+                    <TextField
+                      label="USD Tiered Discounts"
+                      name="usdTieredDiscounts"
+                      value={usdTieredDiscounts}
+                      onChange={setUsdTieredDiscounts}
+                      helpText="Enter USD tiered discounts IN CENTS as key-value pairs, e.g., 2000:22500,135000:13500"
+                    />
+
                     <InlineStack gap="300">
                       <Button loading={isLoading} submit>
                         Create Discount
@@ -220,6 +339,29 @@ export default function Index() {
                     >
                       <pre style={{ margin: 0 }}>
                         <code>{JSON.stringify(actionData, null, 2)}</code>
+
+                        <code>
+                          {`
+                          mutation {
+                            discountAutomaticAppCreate(automaticAppDiscount: {
+                              title: "${title}",
+                              functionId: "f23d62fa-40f7-49bc-9329-86e1fc269e7e",
+                              startsAt: "${startDate}",
+                              metafields: {namespace: "product-discount", key: "function-configuration", value: ${metaFieldValue}, type: "json"},
+                              endsAt: "${endDate}",
+                            }) {
+                              automaticAppDiscount {
+                                discountId
+                                status
+                              }
+                              userErrors {
+                                field
+                                message
+                              }
+                            }
+                          }
+                          `}
+                        </code>
                       </pre>
                     </Box>
                   </>
