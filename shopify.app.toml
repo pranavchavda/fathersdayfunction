@@ -3,7 +3,7 @@
 client_id = "5b89e0a11165b3550c6a323daad996f1"
 name = "iDrinkCoffee Functions"
 handle = "tiered-discounts-idc"
-application_url = "https://weeks-additionally-typically-val.trycloudflare.com"
+application_url = "https://tier-discount.idrinkcoffee.com/"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "write_discounts,write_products"
 
 [auth]
 redirect_urls = [
-  "https://weeks-additionally-typically-val.trycloudflare.com/auth/callback",
-  "https://weeks-additionally-typically-val.trycloudflare.com/auth/shopify/callback",
-  "https://weeks-additionally-typically-val.trycloudflare.com/api/auth/callback"
+  "https://tier-discount.idrinkcoffee.com//auth/callback",
+  "https://tier-discount.idrinkcoffee.com//auth/shopify/callback",
+  "https://tier-discount.idrinkcoffee.com//api/auth/callback"
 ]
 
 [webhooks]
