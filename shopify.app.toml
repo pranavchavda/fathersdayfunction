@@ -12,7 +12,7 @@ application_url = "https://tier-discount.idrinkcoffee.com/"
 embedded = true
 
 [build]
-automatically_update_urls_on_dev = true
+automatically_update_urls_on_dev = true 
 dev_store_url = "idrinkcoffee-dev.myshopify.com"
 include_config_on_deploy = true
 
