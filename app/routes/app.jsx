@@ -24,6 +24,7 @@ export default function App() {
           Home
         </Link>
         <Link to="/app/create-discount">Add a Tiered Discount</Link>
+        <Link to="/app/discount-config">Configure Max Discount Values</Link>
       </NavMenu>
       <Outlet />
     </AppProvider>

@@ -1,5 +1,5 @@
 {
-  "name": "@pranav/tier-discount",
+  "name": "coupon-value-limit",
   "version": "0.0.1",
   "license": "UNLICENSED",
   "scripts": {
@@ -25,10 +25,11 @@
     }
   },
   "devDependencies": {
-    "vitest": "^1.6.0"
+    "vitest": "^0.29.8"
   },
   "dependencies": {
-    "@shopify/shopify_function": "0.2.0",
-    "javy": "0.1.2"
+    "@shopify/shopify_function": "0.1.0",
+    "decimal.js": "^10.4.3",
+    "javy": "0.1.1"
   }
 }

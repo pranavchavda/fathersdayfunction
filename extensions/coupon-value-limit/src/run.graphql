@@ -1,0 +1,53 @@
+# query RunInput {
+#   shop {
+#     metafield(namespace: "$app:coupon-value-limit", key: "function-configuration") {
+#       value
+#     }
+#   }
+# }
+query RunInput {
+  discounts {
+    id
+    code
+    discountProposals {
+      handle
+      value {
+        __typename
+        ... on FixedAmount {
+          amount
+          appliesToEachItem
+        }
+        ... on Percentage {
+          value
+        }
+      }
+      targets {
+        cartLineId
+        quantity
+      }
+    }
+  }
+  presentmentCurrencyRate
+  cart {
+    lines {
+      id
+      quantity
+      cost {
+        amountPerQuantity {
+          amount
+        }
+      }
+      merchandise {
+        __typename
+        ... on ProductVariant {
+          id
+        }
+      }
+    }
+  }
+  shop {
+    metafield(namespace: "custom_discount_allocator", key: "config") {
+      value
+    }
+  }
+}
