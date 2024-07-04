@@ -53,4 +53,7 @@ export default defineConfig({
   build: {
     assetsInlineLimit: 0,
   },
+  optimizeDeps: {
+    include: ["cliui", "chalk", "supports-color", "strip-ansi", "string-width"],
+  },
 });
