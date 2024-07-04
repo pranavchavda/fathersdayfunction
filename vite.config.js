@@ -54,10 +54,16 @@ export default defineConfig({
     assetsInlineLimit: 0,
   },
   optimizeDeps: {
-<<<<<<< HEAD
-    include: ["cliui", "chalk", "supports-color", "strip-ansi", "string-width"],
-=======
-    include: ["string-width", "strip-ansi", "ansi-regex", "ansi-styles"],
->>>>>>> refs/remotes/origin/main
+    include: [
+      "cliui",
+      "chalk",
+      "supports-color",
+      "strip-ansi",
+      "string-width",
+      "string-width",
+      "strip-ansi",
+      "ansi-regex",
+      "ansi-styles",
+    ],
   },
 });
