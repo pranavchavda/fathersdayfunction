@@ -53,4 +53,7 @@ export default defineConfig({
   build: {
     assetsInlineLimit: 0,
   },
+  optimizeDeps: {
+    include: ["string-width", "strip-ansi", "ansi-regex", "ansi-styles"],
+  },
 });
