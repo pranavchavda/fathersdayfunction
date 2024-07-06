@@ -251,7 +251,7 @@ export default function Index() {
               <BlockStack gap="500">
                 <BlockStack gap="200">
                   <Text as="h2" variant="headingMd">
-                    Create a Discount
+                    Create a new Discount
                   </Text>
                   <Text variant="bodyMd" as="p">
                     Fill in the details below to create a discount using the

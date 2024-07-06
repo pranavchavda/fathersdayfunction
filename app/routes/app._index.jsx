@@ -27,7 +27,16 @@ export default function Index() {
                     The only feature currently active is the ability to create a
                     tiered discount, over time, this app will be the central hub
                     for all shopify functions deployed to iDrinkCoffee.com and
-                    other shopify stores managed by IDC.
+                    other shopify stores managed by IDC. 
+                    </Text>
+
+                    <Text as = "p" variant="bodyMd">
+                      Inactive (WIP) features include:
+                    </Text>
+
+                    <Text as="ul">
+                      <li>Max Discount Configuration for Coupons</li>
+                      <li>Combo Discounts</li>
                   </Text>
                 </BlockStack>
               </Card>
