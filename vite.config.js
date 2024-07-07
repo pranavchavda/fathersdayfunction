@@ -15,7 +15,7 @@ if (
 }
 
 const host = new URL(
-  process.env.SHOPIFY_APP_URL || "https://tier-discount.idrinkcoffee.com",
+  process.env.SHOPIFY_APP_URL || "https://tier-discount.idrinkcoffee.com"
 ).hostname;
 let hmrConfig;
 
@@ -47,6 +47,9 @@ export default defineConfig({
   plugins: [
     remix({
       ignoredRouteFiles: ["**/.*"],
+      future: {
+        v3_fetcherPersist: true,
+      },
     }),
     tsconfigPaths(),
   ],

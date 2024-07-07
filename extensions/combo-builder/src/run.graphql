@@ -6,11 +6,11 @@
 #   }
 # }
 
- query Input {
+query Input {
   cart {
     lines {
       quantity
-       cost {
+      cost {
         subtotalAmount {
           amount
           currencyCode
@@ -27,10 +27,18 @@
             hasGrinderTag: hasAnyTag(tags: ["combo-builder-grinder"])
             hasOpenboxTag: hasAnyTag(tags: ["openbox"])
             hasComboDiscount5: hasAnyTag(tags: ["combodiscount-5"])
-            hasTags (tags: ["combo-builder-machine", "combo-builder-grinder", "openbox"]) {
+            hasTags(
+              tags: [
+                "combo-builder-machine"
+                "combo-builder-grinder"
+                "openbox"
+              ]
+            ) {
               tag
             }
-            hasDiscountTags: hasTags(tags: ["combodiscount-5", "combodiscount-*"]) {
+            hasDiscountTags: hasTags(
+              tags: ["combodiscount-5", "combodiscount-*"]
+            ) {
               hasTag
               tag
             }
@@ -45,9 +53,9 @@
       }
     }
   }
- 
+
   discountNode {
-    metafield(namespace: "$app:combo-discount", key: "function-configuration") {
+    metafield(namespace: "combo-discount", key: "function-configuration") {
       value
     }
   }

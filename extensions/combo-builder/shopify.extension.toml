@@ -17,9 +17,7 @@ description = "t:description"
   path = "dist/function.wasm"
 
   [extensions.ui.paths]
-  create = "/"
-  details = "/"
+  create = "/combo-builder/app"
+  details = "/combo-builder/:functionId/:id"
 
-  [extensions.input.variables]
-  namespace = "combo-discount"
-  key = "function-configuration"
+
