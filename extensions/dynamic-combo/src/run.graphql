@@ -1,0 +1,37 @@
+query Input {
+  cart {
+    lines {
+      quantity
+      cost {
+        subtotalAmount {
+          amount
+          currencyCode
+        }
+      }
+      merchandise {
+        __typename
+        ... on ProductVariant {
+          id
+          product {
+            id
+            hasMachineTag: hasAnyTag(tags: ["combo-builder-machine"])
+            hasGrinderTag: hasAnyTag(tags: ["combo-builder-grinder"])
+            hasOpenboxTag: hasAnyTag(tags: ["openbox"])
+            comboDiscountValue: metafield(
+              namespace: "custom"
+              key: "combodiscountvalue"
+            ) {
+              value
+            }
+          }
+        }
+      }
+    }
+    cost {
+      subtotalAmount {
+        amount
+        currencyCode
+      }
+    }
+  }
+}
