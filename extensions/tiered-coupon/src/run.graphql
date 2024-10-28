@@ -1,0 +1,36 @@
+# run.graphql
+
+query Input {
+  cart {
+    lines {
+      id
+      quantity
+      merchandise {
+        __typename
+        ... on ProductVariant {
+          id
+          product {
+            id
+            discountPercentage: metafield(
+              namespace: "custom"
+              key: "discount_percentage"
+            ) {
+              value
+            }
+          }
+        }
+      }
+      cost {
+        totalAmount {
+          amount
+          currencyCode
+        }
+      }
+    }
+  }
+  discountNode {
+    metafield(namespace: "discount_code", key: "function_configuration") {
+      value
+    }
+  }
+}

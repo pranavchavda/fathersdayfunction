@@ -27,6 +27,7 @@ export default function App() {
         <Link to="/app/discount-config">Configure Max Discount Values</Link>
         <Link to="/app/create-combo">Add a Tiered Combo Discount</Link>
         <Link to="/app/createdynamiccombo">Add a Dynamic Combo Discount</Link>
+        <Link to="/app/tiered-coupon">Tiered Coupon</Link>
       </NavMenu>
       <Outlet />
     </AppProvider>
