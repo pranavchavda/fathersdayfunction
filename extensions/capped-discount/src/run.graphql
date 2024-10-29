@@ -1,0 +1,35 @@
+query RunInput($eligibleCollectionIds: [ID!]!) {
+  cart {
+    lines {
+      id
+      quantity
+      cost {
+        totalAmount {
+          amount
+          currencyCode
+        }
+      }
+      merchandise {
+        __typename
+        ... on ProductVariant {
+          id
+          product {
+            id
+            inAnyCollection(ids: $eligibleCollectionIds)
+          }
+        }
+      }
+    }
+    cost {
+      totalAmount {
+        amount
+        currencyCode
+      }
+    }
+  }
+  discountNode {
+    metafield(namespace: "discount_code", key: "function_configuration") {
+      value
+    }
+  }
+}

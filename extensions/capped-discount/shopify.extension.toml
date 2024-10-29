@@ -1,0 +1,30 @@
+api_version = "2024-10"
+
+[[extensions]]
+name = "t:name"
+handle = "capped-discount"
+type = "function"
+
+description = "t:description"
+
+  [[extensions.targeting]]
+  target = "purchase.product-discount.run"
+  input_query = "src/run.graphql"
+  export = "run"
+
+  [extensions.build]
+  command = ""
+  path = "dist/function.wasm"
+
+  [extensions.ui.paths]
+  create = "/"
+  details = "/"
+
+[extensions.input.variables]
+namespace = "discount_code"
+key = "function_configuration"
+
+  [extensions.input.variables.fields]
+  eligibleCollectionIds = "list_of_strings"
+  percentage_discount = "string"
+  maximum_discount_amount = "string"
