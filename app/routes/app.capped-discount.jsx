@@ -9,6 +9,7 @@ import {
   TextField,
   Button,
   FormLayout,
+  Checkbox,
   Text,
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
@@ -33,6 +34,15 @@ export const action = async ({ request }) => {
   const eligibleCollectionIds = JSON.parse(
     formData.get("eligibleCollectionIds") ?? "[]"
   );
+  const usageLimit = formData.get("usageLimit") ?? null; // Add usage limit if needed
+  const appliesOncePerCustomer =
+    formData.get("appliesOncePerCustomer") === "true" ? true : false;
+  const combinesWithOrderDiscounts =
+    formData.get("combinesWithOrderDiscounts") === "true" ? true : false;
+  const combinesWithProductDiscounts =
+    formData.get("combinesWithProductDiscounts") === "true" ? true : false;
+  const combinesWithShippingDiscounts =
+    formData.get("combinesWithShippingDiscounts") === "true" ? true : false;
 
   // Prepare the discount configuration
   const discountConfig = {
@@ -68,12 +78,12 @@ export const action = async ({ request }) => {
           functionId: "e1df1996-03c6-4053-9ba6-49efda23424e", // Replace with your actual function ID
           startsAt,
           endsAt,
+          appliesOncePerCustomer: appliesOncePerCustomer,
           combinesWith: {
-            orderDiscounts: true,
-            productDiscounts: true,
-            shippingDiscounts: true,
+            orderDiscounts: combinesWithOrderDiscounts,
+            productDiscounts: combinesWithProductDiscounts,
+            shippingDiscounts: combinesWithShippingDiscounts,
           },
-          appliesOncePerCustomer: false,
           usageLimit: null,
           metafields: [
             {
@@ -105,7 +115,14 @@ export default function DiscountForm() {
   const [maximumDiscountAmount, setMaximumDiscountAmount] = useState("200");
   const [eligibleCollections, setEligibleCollections] = useState([]);
   const [selectedCollectionNames, setSelectedCollectionNames] = useState([]);
-
+  const [usageLimit, setUsageLimit] = useState("");
+  const [appliesOncePerCustomer, setAppliesOncePerCustomer] = useState(false);
+  const [combinesWithOrderDiscounts, setCombinesWithOrderDiscounts] =
+    useState(true);
+  const [combinesWithProductDiscounts, setCombinesWithProductDiscounts] =
+    useState(true);
+  const [combinesWithShippingDiscounts, setCombinesWithShippingDiscounts] =
+    useState(true);
   const handleOpenPicker = async () => {
     try {
       const selected = await app.resourcePicker({
@@ -213,6 +230,44 @@ export default function DiscountForm() {
                   onChange={(value) => setEndsAt(value)}
                   helpText="Leave blank for no end date"
                 />
+                <TextField
+                  label="Usage Limit"
+                  name="usageLimit"
+                  type="number"
+                  value={usageLimit}
+                  onChange={(value) => setUsageLimit(value)}
+                  helpText="Optional. Maximum number of times this discount code can be used."
+                />
+                <FormLayout.Group>
+                  <Checkbox
+                    label="Applies Once Per Customer"
+                    checked={appliesOncePerCustomer}
+                    onChange={(value) => setAppliesOncePerCustomer(value)}
+                    name="appliesOncePerCustomer"
+                  />
+                </FormLayout.Group>
+                <FormLayout.Group title="Combines With">
+                  <Checkbox
+                    label="Order Discounts"
+                    checked={combinesWithOrderDiscounts}
+                    onChange={(value) => setCombinesWithOrderDiscounts(value)}
+                    name="combinesWithOrderDiscounts"
+                  />
+                  <Checkbox
+                    label="Product Discounts"
+                    checked={combinesWithProductDiscounts}
+                    onChange={(value) => setCombinesWithProductDiscounts(value)}
+                    name="combinesWithProductDiscounts"
+                  />
+                  <Checkbox
+                    label="Shipping Discounts"
+                    checked={combinesWithShippingDiscounts}
+                    onChange={(value) =>
+                      setCombinesWithShippingDiscounts(value)
+                    }
+                    name="combinesWithShippingDiscounts"
+                  />
+                </FormLayout.Group>
                 <Button submit primary>
                   Create Discount Code
                 </Button>
