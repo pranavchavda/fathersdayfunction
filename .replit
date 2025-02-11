@@ -1,0 +1,8 @@
+modules = [ "web", "nodejs-18"]
+run = "pnpm dev"
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "pnpm dev"]
