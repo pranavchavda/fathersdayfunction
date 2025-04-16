@@ -8,11 +8,11 @@ export default defineConfig({
     lib: {
       entry: './src/run.js',
       formats: ['es'],
-      fileName: 'function'
+      fileName: () => 'function.wasm' // Force the output filename to be function.wasm
     },
     rollupOptions: {
       output: {
-        entryFileNames: `[name].wasm`
+        entryFileNames: 'function.wasm' // Explicitly set the output filename
       }
     },
     outDir: 'dist',
