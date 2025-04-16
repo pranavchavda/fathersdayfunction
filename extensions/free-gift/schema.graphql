@@ -34,16 +34,7 @@ input CartTransformInput {
   """
   Returns a metafield by namespace and key that belongs to the resource.
   """
-  metafield(
-    """
-    The key for the metafield.
-    """
-    key: String!
-    """
-    The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
-    """
-    namespace: String
-  ): MetafieldInput
+  metafield: MetafieldInput
 }
 
 """
@@ -54,12 +45,7 @@ input CartInput {
   """
   The attributes associated with the cart. Attributes are represented as key-value pairs.
   """
-  attribute(
-    """
-    The key of the attribute.
-    """
-    key: String!
-  ): AttributeInput
+  attribute: AttributeInput
   """
   Information about the buyer that is interacting with the cart.
   """
@@ -283,12 +269,7 @@ input CartLineInput {
   """
   An attribute associated with the cart line.
   """
-  attribute(
-    """
-    The key of the attribute.
-    """
-    key: String!
-  ): AttributeInput
+  attribute: AttributeInput
   """
   The attributes associated with the cart line. Attributes are represented as key-value pairs.
   """
@@ -511,18 +492,9 @@ input MailingAddressInput {
   """
   firstName: String
   """
-  A formatted version of the address, customized by the provided arguments.
+  A formatted version of the address.
   """
-  formatted(
-    """
-    Whether to include the customer's name in the formatted address.
-    """
-    withName: Boolean = false
-    """
-    Whether to include the customer's company in the formatted address.
-    """
-    withCompany: Boolean = true
-  ): [String!]!
+  formatted: [String!]!
   """
   A comma-separated list of the values for city, province, and country.
   """
@@ -755,16 +727,7 @@ input ProductVariantInput {
   """
   The metafield associated with the resource.
   """
-  metafield(
-    """
-    The key for the metafield.
-    """
-    key: String!
-    """
-    The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
-    """
-    namespace: String
-  ): MetafieldInput
+  metafield: MetafieldInput
   """
   The product that this variant belongs to.
   """
@@ -843,12 +806,7 @@ input ProductInput {
   """
   A list of collections that this product belongs to.
   """
-  collections(
-    """
-    Returns up to the first `n` elements from the list.
-    """
-    first: Int
-  ): ProductCollectionConnectionInput
+  collections: ProductCollectionConnectionInput
   """
   The date and time when the product was created.
   """
@@ -865,16 +823,7 @@ input ProductInput {
   """
   The metafield associated with the resource.
   """
-  metafield(
-    """
-    The key for the metafield.
-    """
-    key: String!
-    """
-    The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
-    """
-    namespace: String
-  ): MetafieldInput
+  metafield: MetafieldInput
   """
   The product type specified by the merchant.
   """
@@ -900,21 +849,11 @@ input ProductInput {
   This is useful for converting a user's selection of product options into a single matching variant.
   If there is not a variant for the selected options, `null` will be returned.
   """
-  variantBySelectedOptions(
-    """
-    The input fields used for a selected option.
-    """
-    selectedOptions: [SelectedOptionInput!]!
-  ): ProductVariantInput
+  variantBySelectedOptions: ProductVariantInput
   """
   List of the product's variants.
   """
-  variants(
-    """
-    Returns up to the first `n` elements from the list.
-    """
-    first: Int
-  ): ProductVariantConnectionInput
+  variants: ProductVariantConnectionInput
   """
   The product's vendor name.
   """
@@ -965,16 +904,7 @@ input CollectionInput {
   """
   The metafield associated with the resource.
   """
-  metafield(
-    """
-    The key for the metafield.
-    """
-    key: String!
-    """
-    The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
-    """
-    namespace: String
-  ): MetafieldInput
+  metafield: MetafieldInput
   """
   The collection's name. Limit of 255 characters.
   """
@@ -1097,16 +1027,7 @@ input SellingPlanInput {
   """
   Returns a metafield by namespace and key that belongs to the resource.
   """
-  metafield(
-    """
-    The key for the metafield.
-    """
-    key: String!
-    """
-    The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
-    """
-    namespace: String
-  ): MetafieldInput
+  metafield: MetafieldInput
   """
   The name of the selling plan. For example, '6 weeks of prepaid granola, delivered weekly'.
   """
