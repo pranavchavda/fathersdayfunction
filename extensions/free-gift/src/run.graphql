@@ -45,7 +45,7 @@ query RunInput {
     }
   }
   cartTransform {
-    metafield(key: "function_configuration") {
+    metafield(namespace: "custom", key: "function_configuration") {
       value
     }
   }
