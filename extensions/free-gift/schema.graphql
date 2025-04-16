@@ -1,3 +1,18 @@
+schema {
+  query: Input
+  mutation: MutationRoot
+}
+
+"""
+Scale the Functions resource limits based on the field's length.
+"""
+directive @scaleLimits(rate: Float!) on FIELD_DEFINITION
+
+"""
+Requires that exactly one field must be supplied and that field must not be `null`.
+"""
+directive @oneOf on INPUT_OBJECT
+
 """
 The input object for the cart transform function.
 """
@@ -5,17 +20,17 @@ input CartTransformInput {
   """
   The cart to transform.
   """
-  cart: Cart!
+  cart: CartInput!
   """
   The cart transform metafield.
   """
-  cartTransform: CartTransform
+  cartTransform: CartTransformInput
 }
 
 """
 The cart transform.
 """
-type CartTransform {
+input CartTransformInput {
   """
   Returns a metafield by namespace and key that belongs to the resource.
   """
@@ -28,14 +43,14 @@ type CartTransform {
     The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
     """
     namespace: String
-  ): Metafield
+  ): MetafieldInput
 }
 
 """
 A cart represents the merchandise that a buyer intends to purchase,
 and the estimated cost associated with the cart.
 """
-type Cart {
+input CartInput {
   """
   The attributes associated with the cart. Attributes are represented as key-value pairs.
   """
@@ -44,11 +59,11 @@ type Cart {
     The key of the attribute.
     """
     key: String!
-  ): Attribute
+  ): AttributeInput
   """
   Information about the buyer that is interacting with the cart.
   """
-  buyerIdentity: CartBuyerIdentity
+  buyerIdentity: CartBuyerIdentityInput
   """
   The URL of the checkout for the cart.
   """
@@ -56,7 +71,7 @@ type Cart {
   """
   The estimated costs that the buyer will pay at checkout.
   """
-  cost: CartCost!
+  cost: CartCostInput!
   """
   The date and time when the cart was created.
   """
@@ -65,19 +80,19 @@ type Cart {
   The delivery groups available for the cart, based on the buyer identity default
   delivery address preference or the default address of the logged-in customer.
   """
-  deliveryGroups: [CartDeliveryGroup!]!
+  deliveryGroups: [CartDeliveryGroupInput!]!
   """
   The discounts that have been applied to the entire cart.
   """
-  discountAllocations: [CartDiscountAllocation!]!
+  discountAllocations: [CartDiscountAllocationInput!]!
   """
   The case-insensitive discount codes that the customer added at checkout.
   """
-  discountCodes: [CartDiscountCode!]!
+  discountCodes: [CartDiscountCodeInput!]!
   """
   The estimated costs that the buyer will pay at checkout.
   """
-  estimatedCost: CartEstimatedCost!
+  estimatedCost: CartEstimatedCostInput!
   """
   A globally-unique identifier.
   """
@@ -85,7 +100,7 @@ type Cart {
   """
   A list of lines containing information about the items the customer intends to purchase.
   """
-  lines: [CartLine!]!
+  lines: [CartLineInput!]!
   """
   A note that is associated with the cart. For example, the note can be a
   personalized message to the buyer.
@@ -104,7 +119,7 @@ type Cart {
 """
 An attribute associated with the cart.
 """
-type Attribute {
+input AttributeInput {
   """
   The key of the attribute.
   """
@@ -118,7 +133,7 @@ type Attribute {
 """
 Information about the buyer that is interacting with the cart.
 """
-type CartBuyerIdentity {
+input CartBuyerIdentityInput {
   """
   The country where the buyer is located.
   """
@@ -126,7 +141,7 @@ type CartBuyerIdentity {
   """
   The customer account associated with the cart.
   """
-  customer: Customer
+  customer: CustomerInput
   """
   The email address of the buyer that is interacting with the cart.
   """
@@ -140,41 +155,41 @@ type CartBuyerIdentity {
 """
 The estimated costs that the buyer will pay at checkout.
 """
-type CartCost {
+input CartCostInput {
   """
   The estimated amount, before taxes and discounts, for the customer to pay.
   """
-  subtotalAmount: MoneyV2!
+  subtotalAmount: MoneyV2Input!
   """
   The estimated total amount for the customer to pay.
   """
-  totalAmount: MoneyV2!
+  totalAmount: MoneyV2Input!
   """
   The estimated duty amount for the customer to pay at checkout.
   """
-  totalDutyAmount: MoneyV2
+  totalDutyAmount: MoneyV2Input
   """
   The estimated tax amount for the customer to pay at checkout.
   """
-  totalTaxAmount: MoneyV2
+  totalTaxAmount: MoneyV2Input
 }
 
 """
 Information about the options available for one or more line items to be delivered to a specific address.
 """
-type CartDeliveryGroup {
+input CartDeliveryGroupInput {
   """
   A list of cart lines for the delivery group.
   """
-  cartLines: [CartLine!]!
+  cartLines: [CartLineInput!]!
   """
   The destination address for the delivery group.
   """
-  deliveryAddress: MailingAddress
+  deliveryAddress: MailingAddressInput
   """
   The delivery options available for the delivery group.
   """
-  deliveryOptions: [CartDeliveryOption!]!
+  deliveryOptions: [CartDeliveryOptionInput!]!
   """
   The ID for the delivery group.
   """
@@ -182,13 +197,13 @@ type CartDeliveryGroup {
   """
   The selected delivery option for the delivery group.
   """
-  selectedDeliveryOption: CartDeliveryOption
+  selectedDeliveryOption: CartDeliveryOptionInput
 }
 
 """
 Information about a delivery option.
 """
-type CartDeliveryOption {
+input CartDeliveryOptionInput {
   """
   The code of the delivery option.
   """
@@ -204,7 +219,7 @@ type CartDeliveryOption {
   """
   The estimated cost for the delivery option.
   """
-  estimatedCost: MoneyV2!
+  estimatedCost: MoneyV2Input!
   """
   The unique identifier of the delivery option.
   """
@@ -218,17 +233,17 @@ type CartDeliveryOption {
 """
 The discounts that have been applied to the cart line.
 """
-type CartDiscountAllocation {
+input CartDiscountAllocationInput {
   """
   The discounted amount that has been applied to the cart line.
   """
-  discountedAmount: MoneyV2!
+  discountedAmount: MoneyV2Input!
 }
 
 """
 The discount codes applied to the cart.
 """
-type CartDiscountCode {
+input CartDiscountCodeInput {
   """
   Whether the discount code is applicable to the cart's current contents.
   """
@@ -242,29 +257,29 @@ type CartDiscountCode {
 """
 The estimated costs that the buyer will pay at checkout.
 """
-type CartEstimatedCost {
+input CartEstimatedCostInput {
   """
   The estimated amount, before taxes and discounts, for the customer to pay.
   """
-  subtotalAmount: MoneyV2!
+  subtotalAmount: MoneyV2Input!
   """
   The estimated total amount for the customer to pay.
   """
-  totalAmount: MoneyV2!
+  totalAmount: MoneyV2Input!
   """
   The estimated duty amount for the customer to pay at checkout.
   """
-  totalDutyAmount: MoneyV2
+  totalDutyAmount: MoneyV2Input
   """
   The estimated tax amount for the customer to pay at checkout.
   """
-  totalTaxAmount: MoneyV2
+  totalTaxAmount: MoneyV2Input
 }
 
 """
 Represents information about the merchandise in the cart.
 """
-type CartLine {
+input CartLineInput {
   """
   An attribute associated with the cart line.
   """
@@ -273,23 +288,23 @@ type CartLine {
     The key of the attribute.
     """
     key: String!
-  ): Attribute
+  ): AttributeInput
   """
   The attributes associated with the cart line. Attributes are represented as key-value pairs.
   """
-  attributes: [Attribute!]!
+  attributes: [AttributeInput!]!
   """
   The cost of the merchandise that the buyer will pay for at checkout.
   """
-  cost: CartLineCost!
+  cost: CartLineCostInput!
   """
   The discounts that have been applied to the cart line.
   """
-  discountAllocations: [CartDiscountAllocation!]!
+  discountAllocations: [CartDiscountAllocationInput!]!
   """
   The estimated cost of the merchandise that the buyer will pay for at checkout.
   """
-  estimatedCost: CartLineEstimatedCost!
+  estimatedCost: CartLineEstimatedCostInput!
   """
   A globally-unique identifier.
   """
@@ -297,7 +312,7 @@ type CartLine {
   """
   The merchandise that the buyer intends to purchase.
   """
-  merchandise: Merchandise!
+  merchandise: MerchandiseInput!
   """
   The quantity of the merchandise that the customer intends to purchase.
   """
@@ -306,51 +321,51 @@ type CartLine {
   The selling plan associated with the cart line and the effect that each
   selling plan has on variants when they're purchased.
   """
-  sellingPlanAllocation: SellingPlanAllocation
+  sellingPlanAllocation: SellingPlanAllocationInput
 }
 
 """
 The cost of the merchandise line that the buyer will pay at checkout.
 """
-type CartLineCost {
+input CartLineCostInput {
   """
   The amount of the merchandise line.
   """
-  amountPerQuantity: MoneyV2!
+  amountPerQuantity: MoneyV2Input!
   """
   The compare at amount of the merchandise line.
   """
-  compareAtAmountPerQuantity: MoneyV2
+  compareAtAmountPerQuantity: MoneyV2Input
   """
   The cost of the merchandise line before line-level discounts.
   """
-  subtotalAmount: MoneyV2!
+  subtotalAmount: MoneyV2Input!
   """
   The total cost of the merchandise line.
   """
-  totalAmount: MoneyV2!
+  totalAmount: MoneyV2Input!
 }
 
 """
 The estimated cost of the merchandise line that the buyer will pay at checkout.
 """
-type CartLineEstimatedCost {
+input CartLineEstimatedCostInput {
   """
   The amount of the merchandise line.
   """
-  amount: MoneyV2!
+  amount: MoneyV2Input!
   """
   The compare at amount of the merchandise line.
   """
-  compareAtAmount: MoneyV2
+  compareAtAmount: MoneyV2Input
   """
   The estimated cost of the merchandise line before discounts.
   """
-  subtotalAmount: MoneyV2!
+  subtotalAmount: MoneyV2Input!
   """
   The estimated total cost of the merchandise line.
   """
-  totalAmount: MoneyV2!
+  totalAmount: MoneyV2Input!
 }
 
 """
@@ -374,7 +389,7 @@ enum CountryCode {
 """
 Information about a customer of the shop.
 """
-type Customer {
+input CustomerInput {
   """
   The customer's email address.
   """
@@ -390,7 +405,7 @@ type Customer {
   """
   The customer's most recently updated, incomplete checkout.
   """
-  lastIncompleteCheckout: Checkout
+  lastIncompleteCheckout: CheckoutInput
   """
   The customer's last name.
   """
@@ -404,7 +419,7 @@ type Customer {
 """
 A container for all the information required to checkout items and pay.
 """
-type Checkout {
+input CheckoutInput {
   """
   The date and time when the checkout was completed.
   """
@@ -465,7 +480,7 @@ enum DeliveryMethodType {
 """
 Represents a mailing address for customers and shipping.
 """
-type MailingAddress {
+input MailingAddressInput {
   """
   The first line of the address. Typically the street address or PO Box number.
   """
@@ -555,13 +570,18 @@ type MailingAddress {
 """
 Represents information about the merchandise in the cart.
 """
-union Merchandise = ProductVariant
+input MerchandiseInput {
+  """
+  The product variant.
+  """
+  productVariant: ProductVariantInput
+}
 
 """
 A metafield is a key-value pair that can be attached to various resources in the
 Shopify ecosystem. It can store custom information.
 """
-type Metafield {
+input MetafieldInput {
   """
   The date and time when the metafield was created.
   """
@@ -585,12 +605,9 @@ type Metafield {
   """
   The type of resource that the metafield is attached to.
   """
-  parentResource: MetafieldParentResource!
+  parentResource: MetafieldParentResourceInput!
   """
-  The type of data stored in the metafield. Possible types include, but are not limited to:
-  'boolean', 'color', 'date', 'date_time', 'dimension', 'file_reference', 'json', 'money',
-  'multi_line_text_field', 'number_decimal', 'number_integer', 'rating', 'rich_text_field',
-  'single_line_text_field', 'url', 'volume', and 'weight'.
+  The type of data stored in the metafield.
   """
   type: String!
   """
@@ -606,7 +623,7 @@ type Metafield {
 """
 A resource that the metafield belongs to.
 """
-type MetafieldParentResource {
+input MetafieldParentResourceInput {
   """
   The type of resource that the metafield belongs to.
   """
@@ -650,7 +667,7 @@ enum MetafieldParentResourceType {
 """
 A monetary value with currency.
 """
-type MoneyV2 {
+input MoneyV2Input {
   """
   Decimal money amount.
   """
@@ -700,7 +717,7 @@ enum CurrencyCode {
 """
 A product variant represents a different version of a product, such as differing sizes or differing colors.
 """
-type ProductVariant implements HasMetafields {
+input ProductVariantInput {
   """
   Indicates if the product variant is available for sale.
   """
@@ -713,7 +730,7 @@ type ProductVariant implements HasMetafields {
   The compare at price of the variant. This can be used to mark a variant as on
   sale, when `compareAtPrice` is higher than `price`.
   """
-  compareAtPrice: MoneyV2
+  compareAtPrice: MoneyV2Input
   """
   The date and time when the variant was created.
   """
@@ -721,7 +738,7 @@ type ProductVariant implements HasMetafields {
   """
   The delivery profile for the variant.
   """
-  deliveryProfile: DeliveryProfile
+  deliveryProfile: DeliveryProfileInput
   """
   The display name of the variant, based on product options. If there is only
   one variant, the display name will be blank.
@@ -734,7 +751,7 @@ type ProductVariant implements HasMetafields {
   """
   The featured image for the variant.
   """
-  image: Image
+  image: ImageInput
   """
   The metafield associated with the resource.
   """
@@ -747,11 +764,11 @@ type ProductVariant implements HasMetafields {
     The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
     """
     namespace: String
-  ): Metafield
+  ): MetafieldInput
   """
   The product that this variant belongs to.
   """
-  product: Product!
+  product: ProductInput!
   """
   The total sellable quantity of the variant for online sales channels.
   """
@@ -775,28 +792,9 @@ type ProductVariant implements HasMetafields {
 }
 
 """
-An interface for resources that implement metafields.
-"""
-interface HasMetafields {
-  """
-  The metafield associated with the resource.
-  """
-  metafield(
-    """
-    The key for the metafield.
-    """
-    key: String!
-    """
-    The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
-    """
-    namespace: String
-  ): Metafield
-}
-
-"""
 A delivery profile is a group of shipping options that can be offered to buyers.
 """
-type DeliveryProfile {
+input DeliveryProfileInput {
   """
   A globally-unique identifier.
   """
@@ -810,7 +808,7 @@ type DeliveryProfile {
 """
 Represents an image resource.
 """
-type Image {
+input ImageInput {
   """
   A word or phrase to share the nature or contents of an image.
   """
@@ -841,7 +839,7 @@ type Image {
 A product represents an individual item for sale in a Shopify store. Products are often physical, but they don't have to be.
 For example, a digital download (such as a movie, music or ebook file) also qualifies as a product, as do services (such as equipment rental, work for hire, customization of another product or an extended warranty).
 """
-type Product implements HasMetafields {
+input ProductInput {
   """
   A list of collections that this product belongs to.
   """
@@ -850,7 +848,7 @@ type Product implements HasMetafields {
     Returns up to the first `n` elements from the list.
     """
     first: Int
-  ): ProductCollectionConnection
+  ): ProductCollectionConnectionInput
   """
   The date and time when the product was created.
   """
@@ -876,7 +874,7 @@ type Product implements HasMetafields {
     The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
     """
     namespace: String
-  ): Metafield
+  ): MetafieldInput
   """
   The product type specified by the merchant.
   """
@@ -907,7 +905,7 @@ type Product implements HasMetafields {
     The input fields used for a selected option.
     """
     selectedOptions: [SelectedOptionInput!]!
-  ): ProductVariant
+  ): ProductVariantInput
   """
   List of the product's variants.
   """
@@ -916,7 +914,7 @@ type Product implements HasMetafields {
     Returns up to the first `n` elements from the list.
     """
     first: Int
-  ): ProductVariantConnection
+  ): ProductVariantConnectionInput
   """
   The product's vendor name.
   """
@@ -926,21 +924,21 @@ type Product implements HasMetafields {
 """
 An auto-generated type for paginating through multiple ProductCollections.
 """
-type ProductCollectionConnection {
+input ProductCollectionConnectionInput {
   """
   A list of edges.
   """
-  edges: [ProductCollectionEdge!]!
+  edges: [ProductCollectionEdgeInput!]!
   """
   Information to aid in pagination.
   """
-  pageInfo: PageInfo!
+  pageInfo: PageInfoInput!
 }
 
 """
 An auto-generated type which holds one ProductCollection and a cursor during pagination.
 """
-type ProductCollectionEdge {
+input ProductCollectionEdgeInput {
   """
   A cursor for use in pagination.
   """
@@ -948,13 +946,13 @@ type ProductCollectionEdge {
   """
   The item at the end of ProductCollectionEdge.
   """
-  node: Collection!
+  node: CollectionInput!
 }
 
 """
 A collection represents a grouping of products that a shop owner can create to organize them or make their shops easier to browse.
 """
-type Collection implements HasMetafields {
+input CollectionInput {
   """
   A human-friendly unique string for the collection automatically generated from its title.
   Limit of 255 characters.
@@ -976,7 +974,7 @@ type Collection implements HasMetafields {
     The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
     """
     namespace: String
-  ): Metafield
+  ): MetafieldInput
   """
   The collection's name. Limit of 255 characters.
   """
@@ -990,7 +988,7 @@ type Collection implements HasMetafields {
 """
 Information about pagination in a connection.
 """
-type PageInfo {
+input PageInfoInput {
   """
   Indicates if there are more pages to fetch.
   """
@@ -1018,21 +1016,21 @@ input SelectedOptionInput {
 """
 An auto-generated type for paginating through multiple ProductVariants.
 """
-type ProductVariantConnection {
+input ProductVariantConnectionInput {
   """
   A list of edges.
   """
-  edges: [ProductVariantEdge!]!
+  edges: [ProductVariantEdgeInput!]!
   """
   Information to aid in pagination.
   """
-  pageInfo: PageInfo!
+  pageInfo: PageInfoInput!
 }
 
 """
 An auto-generated type which holds one ProductVariant and a cursor during pagination.
 """
-type ProductVariantEdge {
+input ProductVariantEdgeInput {
   """
   A cursor for use in pagination.
   """
@@ -1040,7 +1038,7 @@ type ProductVariantEdge {
   """
   The item at the end of ProductVariantEdge.
   """
-  node: ProductVariant!
+  node: ProductVariantInput!
 }
 
 """
@@ -1048,7 +1046,7 @@ Represents an association between a variant and a selling plan. Selling plan
 allocations describe the options offered for each variant, and the price of the
 variant when purchased with a selling plan.
 """
-type SellingPlanAllocation {
+input SellingPlanAllocationInput {
   """
   A list of price adjustments, with a maximum of two. When there are two, the
   first price adjustment goes into effect at the time of purchase, while the
@@ -1057,37 +1055,37 @@ type SellingPlanAllocation {
   a selling plan. Prices display in the customer's currency if the shop is
   configured for it.
   """
-  priceAdjustments: [SellingPlanAllocationPriceAdjustment!]!
+  priceAdjustments: [SellingPlanAllocationPriceAdjustmentInput!]!
   """
   A representation of how products and variants can be sold and purchased. For
   example, an individual selling plan could be '6 weeks of prepaid granola,
   delivered weekly'.
   """
-  sellingPlan: SellingPlan!
+  sellingPlan: SellingPlanInput!
 }
 
 """
 The resulting prices for variants when they're purchased with a specific selling plan.
 """
-type SellingPlanAllocationPriceAdjustment {
+input SellingPlanAllocationPriceAdjustmentInput {
   """
   The effective price for a single delivery. For example, for a prepaid
   subscription plan that includes 6 deliveries at the price of $48.00, the per
   delivery price is $8.00.
   """
-  perDeliveryPrice: MoneyV2!
+  perDeliveryPrice: MoneyV2Input!
   """
   The price of the variant when it's purchased with a selling plan For example,
   for a prepaid subscription plan that includes 6 deliveries of $10.00 granola,
   where the customer gets 20% off, the price is 6 x $10.00 x 0.80 = $48.00.
   """
-  price: MoneyV2!
+  price: MoneyV2Input!
 }
 
 """
 Represents how products and variants can be sold and purchased.
 """
-type SellingPlan implements HasMetafields {
+input SellingPlanInput {
   """
   The description of the selling plan.
   """
@@ -1108,7 +1106,7 @@ type SellingPlan implements HasMetafields {
     The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
     """
     namespace: String
-  ): Metafield
+  ): MetafieldInput
   """
   The name of the selling plan. For example, '6 weeks of prepaid granola, delivered weekly'.
   """
@@ -1352,4 +1350,24 @@ enum CartTransformErrorCode {
   The operation failed.
   """
   OPERATION_FAILED
+}
+
+"""
+The root query type.
+"""
+type Input {
+  """
+  The input for the cart transform function.
+  """
+  cartTransform: CartTransformInput
+}
+
+"""
+The root mutation type.
+"""
+type MutationRoot {
+  """
+  A placeholder field.
+  """
+  placeholder: Boolean
 }
