@@ -4,13 +4,15 @@
   "description": "Shopify Function to add free gifts based on cart criteria",
   "main": "dist/function.wasm",
   "scripts": {
-    "build": "vite build",
+    "build": "javy build src/run.js -o dist/function.wasm",
     "test": "vitest run"
   },
   "dependencies": {
-    "@shopify/shopify-api": "^7.5.0"
+    "@shopify/shopify-api": "^7.5.0",
+    "@shopify/shopify-functions-javascript": "^0.1.0"
   },
   "devDependencies": {
+    "javy-cli": "^0.2.1",
     "vite": "^4.4.9",
     "vite-plugin-wasm": "^3.2.2",
     "vitest": "^0.34.3"
