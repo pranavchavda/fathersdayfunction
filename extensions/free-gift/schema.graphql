@@ -1,0 +1,1355 @@
+"""
+The input object for the cart transform function.
+"""
+input CartTransformInput {
+  """
+  The cart to transform.
+  """
+  cart: Cart!
+  """
+  The cart transform metafield.
+  """
+  cartTransform: CartTransform
+}
+
+"""
+The cart transform.
+"""
+type CartTransform {
+  """
+  Returns a metafield by namespace and key that belongs to the resource.
+  """
+  metafield(
+    """
+    The key for the metafield.
+    """
+    key: String!
+    """
+    The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
+    """
+    namespace: String
+  ): Metafield
+}
+
+"""
+A cart represents the merchandise that a buyer intends to purchase,
+and the estimated cost associated with the cart.
+"""
+type Cart {
+  """
+  The attributes associated with the cart. Attributes are represented as key-value pairs.
+  """
+  attribute(
+    """
+    The key of the attribute.
+    """
+    key: String!
+  ): Attribute
+  """
+  Information about the buyer that is interacting with the cart.
+  """
+  buyerIdentity: CartBuyerIdentity
+  """
+  The URL of the checkout for the cart.
+  """
+  checkoutUrl: URL
+  """
+  The estimated costs that the buyer will pay at checkout.
+  """
+  cost: CartCost!
+  """
+  The date and time when the cart was created.
+  """
+  createdAt: DateTime!
+  """
+  The delivery groups available for the cart, based on the buyer identity default
+  delivery address preference or the default address of the logged-in customer.
+  """
+  deliveryGroups: [CartDeliveryGroup!]!
+  """
+  The discounts that have been applied to the entire cart.
+  """
+  discountAllocations: [CartDiscountAllocation!]!
+  """
+  The case-insensitive discount codes that the customer added at checkout.
+  """
+  discountCodes: [CartDiscountCode!]!
+  """
+  The estimated costs that the buyer will pay at checkout.
+  """
+  estimatedCost: CartEstimatedCost!
+  """
+  A globally-unique identifier.
+  """
+  id: ID!
+  """
+  A list of lines containing information about the items the customer intends to purchase.
+  """
+  lines: [CartLine!]!
+  """
+  A note that is associated with the cart. For example, the note can be a
+  personalized message to the buyer.
+  """
+  note: String
+  """
+  The total number of items in the cart.
+  """
+  totalQuantity: Int!
+  """
+  The date and time when the cart was updated.
+  """
+  updatedAt: DateTime!
+}
+
+"""
+An attribute associated with the cart.
+"""
+type Attribute {
+  """
+  The key of the attribute.
+  """
+  key: String!
+  """
+  The value of the attribute.
+  """
+  value: String
+}
+
+"""
+Information about the buyer that is interacting with the cart.
+"""
+type CartBuyerIdentity {
+  """
+  The country where the buyer is located.
+  """
+  countryCode: CountryCode
+  """
+  The customer account associated with the cart.
+  """
+  customer: Customer
+  """
+  The email address of the buyer that is interacting with the cart.
+  """
+  email: String
+  """
+  The phone number of the buyer that is interacting with the cart.
+  """
+  phone: String
+}
+
+"""
+The estimated costs that the buyer will pay at checkout.
+"""
+type CartCost {
+  """
+  The estimated amount, before taxes and discounts, for the customer to pay.
+  """
+  subtotalAmount: MoneyV2!
+  """
+  The estimated total amount for the customer to pay.
+  """
+  totalAmount: MoneyV2!
+  """
+  The estimated duty amount for the customer to pay at checkout.
+  """
+  totalDutyAmount: MoneyV2
+  """
+  The estimated tax amount for the customer to pay at checkout.
+  """
+  totalTaxAmount: MoneyV2
+}
+
+"""
+Information about the options available for one or more line items to be delivered to a specific address.
+"""
+type CartDeliveryGroup {
+  """
+  A list of cart lines for the delivery group.
+  """
+  cartLines: [CartLine!]!
+  """
+  The destination address for the delivery group.
+  """
+  deliveryAddress: MailingAddress
+  """
+  The delivery options available for the delivery group.
+  """
+  deliveryOptions: [CartDeliveryOption!]!
+  """
+  The ID for the delivery group.
+  """
+  id: ID!
+  """
+  The selected delivery option for the delivery group.
+  """
+  selectedDeliveryOption: CartDeliveryOption
+}
+
+"""
+Information about a delivery option.
+"""
+type CartDeliveryOption {
+  """
+  The code of the delivery option.
+  """
+  code: String
+  """
+  The method for the delivery option.
+  """
+  deliveryMethodType: DeliveryMethodType!
+  """
+  The description of the delivery option.
+  """
+  description: String
+  """
+  The estimated cost for the delivery option.
+  """
+  estimatedCost: MoneyV2!
+  """
+  The unique identifier of the delivery option.
+  """
+  handle: String
+  """
+  The title of the delivery option.
+  """
+  title: String!
+}
+
+"""
+The discounts that have been applied to the cart line.
+"""
+type CartDiscountAllocation {
+  """
+  The discounted amount that has been applied to the cart line.
+  """
+  discountedAmount: MoneyV2!
+}
+
+"""
+The discount codes applied to the cart.
+"""
+type CartDiscountCode {
+  """
+  Whether the discount code is applicable to the cart's current contents.
+  """
+  applicable: Boolean!
+  """
+  The code for the discount.
+  """
+  code: String!
+}
+
+"""
+The estimated costs that the buyer will pay at checkout.
+"""
+type CartEstimatedCost {
+  """
+  The estimated amount, before taxes and discounts, for the customer to pay.
+  """
+  subtotalAmount: MoneyV2!
+  """
+  The estimated total amount for the customer to pay.
+  """
+  totalAmount: MoneyV2!
+  """
+  The estimated duty amount for the customer to pay at checkout.
+  """
+  totalDutyAmount: MoneyV2
+  """
+  The estimated tax amount for the customer to pay at checkout.
+  """
+  totalTaxAmount: MoneyV2
+}
+
+"""
+Represents information about the merchandise in the cart.
+"""
+type CartLine {
+  """
+  An attribute associated with the cart line.
+  """
+  attribute(
+    """
+    The key of the attribute.
+    """
+    key: String!
+  ): Attribute
+  """
+  The attributes associated with the cart line. Attributes are represented as key-value pairs.
+  """
+  attributes: [Attribute!]!
+  """
+  The cost of the merchandise that the buyer will pay for at checkout.
+  """
+  cost: CartLineCost!
+  """
+  The discounts that have been applied to the cart line.
+  """
+  discountAllocations: [CartDiscountAllocation!]!
+  """
+  The estimated cost of the merchandise that the buyer will pay for at checkout.
+  """
+  estimatedCost: CartLineEstimatedCost!
+  """
+  A globally-unique identifier.
+  """
+  id: ID!
+  """
+  The merchandise that the buyer intends to purchase.
+  """
+  merchandise: Merchandise!
+  """
+  The quantity of the merchandise that the customer intends to purchase.
+  """
+  quantity: Int!
+  """
+  The selling plan associated with the cart line and the effect that each
+  selling plan has on variants when they're purchased.
+  """
+  sellingPlanAllocation: SellingPlanAllocation
+}
+
+"""
+The cost of the merchandise line that the buyer will pay at checkout.
+"""
+type CartLineCost {
+  """
+  The amount of the merchandise line.
+  """
+  amountPerQuantity: MoneyV2!
+  """
+  The compare at amount of the merchandise line.
+  """
+  compareAtAmountPerQuantity: MoneyV2
+  """
+  The cost of the merchandise line before line-level discounts.
+  """
+  subtotalAmount: MoneyV2!
+  """
+  The total cost of the merchandise line.
+  """
+  totalAmount: MoneyV2!
+}
+
+"""
+The estimated cost of the merchandise line that the buyer will pay at checkout.
+"""
+type CartLineEstimatedCost {
+  """
+  The amount of the merchandise line.
+  """
+  amount: MoneyV2!
+  """
+  The compare at amount of the merchandise line.
+  """
+  compareAtAmount: MoneyV2
+  """
+  The estimated cost of the merchandise line before discounts.
+  """
+  subtotalAmount: MoneyV2!
+  """
+  The estimated total cost of the merchandise line.
+  """
+  totalAmount: MoneyV2!
+}
+
+"""
+The ISO 3166-1 alpha-2 country code.
+"""
+enum CountryCode {
+  """
+  United States.
+  """
+  US
+  """
+  Canada.
+  """
+  CA
+  """
+  United Kingdom.
+  """
+  GB
+}
+
+"""
+Information about a customer of the shop.
+"""
+type Customer {
+  """
+  The customer's email address.
+  """
+  email: String
+  """
+  The customer's first name.
+  """
+  firstName: String
+  """
+  A unique identifier for the customer.
+  """
+  id: ID!
+  """
+  The customer's most recently updated, incomplete checkout.
+  """
+  lastIncompleteCheckout: Checkout
+  """
+  The customer's last name.
+  """
+  lastName: String
+  """
+  The customer's phone number.
+  """
+  phone: String
+}
+
+"""
+A container for all the information required to checkout items and pay.
+"""
+type Checkout {
+  """
+  The date and time when the checkout was completed.
+  """
+  completedAt: DateTime
+  """
+  The date and time when the checkout was created.
+  """
+  createdAt: DateTime!
+  """
+  The email attached to this checkout.
+  """
+  email: String
+  """
+  A globally-unique identifier.
+  """
+  id: ID!
+  """
+  The date and time when the checkout was last updated.
+  """
+  updatedAt: DateTime!
+  """
+  The URL for the checkout's web page.
+  """
+  webUrl: URL!
+}
+
+"""
+An ISO-8601 encoded UTC date time string. Example value: `"2019-07-03T20:47:55Z"`.
+"""
+scalar DateTime
+
+"""
+The method by which the delivery option is made available.
+"""
+enum DeliveryMethodType {
+  """
+  A delivery that is shipped.
+  """
+  SHIPPING
+  """
+  A delivery that is picked up.
+  """
+  PICKUP
+  """
+  A delivery that is picked up at a retail store.
+  """
+  RETAIL
+  """
+  A delivery that is picked up at a local store.
+  """
+  LOCAL
+  """
+  A delivery that doesn't need to be shipped or picked up.
+  """
+  NONE
+}
+
+"""
+Represents a mailing address for customers and shipping.
+"""
+type MailingAddress {
+  """
+  The first line of the address. Typically the street address or PO Box number.
+  """
+  address1: String
+  """
+  The second line of the address. Typically the number of the apartment, suite, or unit.
+  """
+  address2: String
+  """
+  The name of the city, district, village, or town.
+  """
+  city: String
+  """
+  The name of the customer's company or organization.
+  """
+  company: String
+  """
+  The name of the country.
+  """
+  country: String
+  """
+  The two-letter code for the country of the address.
+  For example, US.
+  """
+  countryCodeV2: CountryCode
+  """
+  The first name of the customer.
+  """
+  firstName: String
+  """
+  A formatted version of the address, customized by the provided arguments.
+  """
+  formatted(
+    """
+    Whether to include the customer's name in the formatted address.
+    """
+    withName: Boolean = false
+    """
+    Whether to include the customer's company in the formatted address.
+    """
+    withCompany: Boolean = true
+  ): [String!]!
+  """
+  A comma-separated list of the values for city, province, and country.
+  """
+  formattedArea: String
+  """
+  A globally-unique identifier.
+  """
+  id: ID!
+  """
+  The last name of the customer.
+  """
+  lastName: String
+  """
+  The latitude coordinate of the customer address.
+  """
+  latitude: Float
+  """
+  The longitude coordinate of the customer address.
+  """
+  longitude: Float
+  """
+  The full name of the customer, based on firstName and lastName.
+  """
+  name: String
+  """
+  A unique phone number for the customer.
+  Formatted using E.164 standard. For example, +16135551111.
+  """
+  phone: String
+  """
+  The region of the address, such as the province, state, or district.
+  """
+  province: String
+  """
+  The two-letter code for the region.
+  For example, ON.
+  """
+  provinceCode: String
+  """
+  The zip or postal code of the address.
+  """
+  zip: String
+}
+
+"""
+Represents information about the merchandise in the cart.
+"""
+union Merchandise = ProductVariant
+
+"""
+A metafield is a key-value pair that can be attached to various resources in the
+Shopify ecosystem. It can store custom information.
+"""
+type Metafield {
+  """
+  The date and time when the metafield was created.
+  """
+  createdAt: DateTime!
+  """
+  The description of a metafield.
+  """
+  description: String
+  """
+  A globally-unique identifier.
+  """
+  id: ID!
+  """
+  The key name for a metafield.
+  """
+  key: String!
+  """
+  The namespace for a metafield.
+  """
+  namespace: String!
+  """
+  The type of resource that the metafield is attached to.
+  """
+  parentResource: MetafieldParentResource!
+  """
+  The type of data stored in the metafield. Possible types include, but are not limited to:
+  'boolean', 'color', 'date', 'date_time', 'dimension', 'file_reference', 'json', 'money',
+  'multi_line_text_field', 'number_decimal', 'number_integer', 'rating', 'rich_text_field',
+  'single_line_text_field', 'url', 'volume', and 'weight'.
+  """
+  type: String!
+  """
+  The date and time when the metafield was updated.
+  """
+  updatedAt: DateTime!
+  """
+  The value of a metafield.
+  """
+  value: String!
+}
+
+"""
+A resource that the metafield belongs to.
+"""
+type MetafieldParentResource {
+  """
+  The type of resource that the metafield belongs to.
+  """
+  type: MetafieldParentResourceType!
+}
+
+"""
+The resource type that the metafield belongs to.
+"""
+enum MetafieldParentResourceType {
+  """
+  The metafield belongs to a product.
+  """
+  PRODUCT
+  """
+  The metafield belongs to a product variant.
+  """
+  PRODUCT_VARIANT
+  """
+  The metafield belongs to a product image.
+  """
+  PRODUCT_IMAGE
+  """
+  The metafield belongs to a collection.
+  """
+  COLLECTION
+  """
+  The metafield belongs to a customer.
+  """
+  CUSTOMER
+  """
+  The metafield belongs to a company location.
+  """
+  COMPANY_LOCATION
+  """
+  The metafield belongs to a cart transform.
+  """
+  CART_TRANSFORM
+}
+
+"""
+A monetary value with currency.
+"""
+type MoneyV2 {
+  """
+  Decimal money amount.
+  """
+  amount: Decimal!
+  """
+  Currency of the money.
+  """
+  currencyCode: CurrencyCode!
+}
+
+"""
+A signed decimal number, which supports arbitrary precision and is serialized as a string.
+Example value: "29.99".
+"""
+scalar Decimal
+
+"""
+Currency codes.
+"""
+enum CurrencyCode {
+  """
+  United States Dollars (USD).
+  """
+  USD
+  """
+  Euro (EUR).
+  """
+  EUR
+  """
+  United Kingdom Pounds (GBP).
+  """
+  GBP
+  """
+  Canadian Dollars (CAD).
+  """
+  CAD
+  """
+  Australian Dollars (AUD).
+  """
+  AUD
+  """
+  Japanese Yen (JPY).
+  """
+  JPY
+}
+
+"""
+A product variant represents a different version of a product, such as differing sizes or differing colors.
+"""
+type ProductVariant implements HasMetafields {
+  """
+  Indicates if the product variant is available for sale.
+  """
+  availableForSale: Boolean!
+  """
+  The barcode (for example, ISBN, UPC, or GTIN) associated with the variant.
+  """
+  barcode: String
+  """
+  The compare at price of the variant. This can be used to mark a variant as on
+  sale, when `compareAtPrice` is higher than `price`.
+  """
+  compareAtPrice: MoneyV2
+  """
+  The date and time when the variant was created.
+  """
+  createdAt: DateTime!
+  """
+  The delivery profile for the variant.
+  """
+  deliveryProfile: DeliveryProfile
+  """
+  The display name of the variant, based on product options. If there is only
+  one variant, the display name will be blank.
+  """
+  displayName: String!
+  """
+  A globally-unique identifier.
+  """
+  id: ID!
+  """
+  The featured image for the variant.
+  """
+  image: Image
+  """
+  The metafield associated with the resource.
+  """
+  metafield(
+    """
+    The key for the metafield.
+    """
+    key: String!
+    """
+    The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
+    """
+    namespace: String
+  ): Metafield
+  """
+  The product that this variant belongs to.
+  """
+  product: Product!
+  """
+  The total sellable quantity of the variant for online sales channels.
+  """
+  quantityAvailable: Int
+  """
+  The SKU (stock keeping unit) associated with the variant.
+  """
+  sku: String
+  """
+  The title of the product variant.
+  """
+  title: String!
+  """
+  The weight of the product variant in the unit system specified with `weight_unit`.
+  """
+  weight: Float
+  """
+  Unit of measurement for weight.
+  """
+  weightUnit: WeightUnit!
+}
+
+"""
+An interface for resources that implement metafields.
+"""
+interface HasMetafields {
+  """
+  The metafield associated with the resource.
+  """
+  metafield(
+    """
+    The key for the metafield.
+    """
+    key: String!
+    """
+    The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
+    """
+    namespace: String
+  ): Metafield
+}
+
+"""
+A delivery profile is a group of shipping options that can be offered to buyers.
+"""
+type DeliveryProfile {
+  """
+  A globally-unique identifier.
+  """
+  id: ID!
+  """
+  The name of the delivery profile.
+  """
+  name: String!
+}
+
+"""
+Represents an image resource.
+"""
+type Image {
+  """
+  A word or phrase to share the nature or contents of an image.
+  """
+  altText: String
+  """
+  The original height of the image in pixels. Returns `null` if the image is not hosted by Shopify.
+  """
+  height: Int
+  """
+  A unique identifier for the image.
+  """
+  id: ID
+  """
+  The location of the original image as a URL.
+  """
+  originalSrc: URL!
+  """
+  The location of the image as a URL.
+  """
+  src: URL!
+  """
+  The original width of the image in pixels. Returns `null` if the image is not hosted by Shopify.
+  """
+  width: Int
+}
+
+"""
+A product represents an individual item for sale in a Shopify store. Products are often physical, but they don't have to be.
+For example, a digital download (such as a movie, music or ebook file) also qualifies as a product, as do services (such as equipment rental, work for hire, customization of another product or an extended warranty).
+"""
+type Product implements HasMetafields {
+  """
+  A list of collections that this product belongs to.
+  """
+  collections(
+    """
+    Returns up to the first `n` elements from the list.
+    """
+    first: Int
+  ): ProductCollectionConnection
+  """
+  The date and time when the product was created.
+  """
+  createdAt: DateTime!
+  """
+  A human-friendly unique string for the Product automatically generated from its title.
+  They are used by the Liquid templating language to refer to objects.
+  """
+  handle: String!
+  """
+  A globally-unique identifier.
+  """
+  id: ID!
+  """
+  The metafield associated with the resource.
+  """
+  metafield(
+    """
+    The key for the metafield.
+    """
+    key: String!
+    """
+    The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
+    """
+    namespace: String
+  ): Metafield
+  """
+  The product type specified by the merchant.
+  """
+  productType: String!
+  """
+  The date and time when the product was published to the channel.
+  """
+  publishedAt: DateTime!
+  """
+  A categorization that a product can be tagged with, commonly used for filtering and searching.
+  """
+  tags: [String!]!
+  """
+  The product's title.
+  """
+  title: String!
+  """
+  The date and time when the product was last modified.
+  """
+  updatedAt: DateTime!
+  """
+  Find a product's variant based on its selected options.
+  This is useful for converting a user's selection of product options into a single matching variant.
+  If there is not a variant for the selected options, `null` will be returned.
+  """
+  variantBySelectedOptions(
+    """
+    The input fields used for a selected option.
+    """
+    selectedOptions: [SelectedOptionInput!]!
+  ): ProductVariant
+  """
+  List of the product's variants.
+  """
+  variants(
+    """
+    Returns up to the first `n` elements from the list.
+    """
+    first: Int
+  ): ProductVariantConnection
+  """
+  The product's vendor name.
+  """
+  vendor: String!
+}
+
+"""
+An auto-generated type for paginating through multiple ProductCollections.
+"""
+type ProductCollectionConnection {
+  """
+  A list of edges.
+  """
+  edges: [ProductCollectionEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+An auto-generated type which holds one ProductCollection and a cursor during pagination.
+"""
+type ProductCollectionEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+  """
+  The item at the end of ProductCollectionEdge.
+  """
+  node: Collection!
+}
+
+"""
+A collection represents a grouping of products that a shop owner can create to organize them or make their shops easier to browse.
+"""
+type Collection implements HasMetafields {
+  """
+  A human-friendly unique string for the collection automatically generated from its title.
+  Limit of 255 characters.
+  """
+  handle: String!
+  """
+  A globally-unique identifier.
+  """
+  id: ID!
+  """
+  The metafield associated with the resource.
+  """
+  metafield(
+    """
+    The key for the metafield.
+    """
+    key: String!
+    """
+    The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
+    """
+    namespace: String
+  ): Metafield
+  """
+  The collection's name. Limit of 255 characters.
+  """
+  title: String!
+  """
+  The date and time when the collection was last modified.
+  """
+  updatedAt: DateTime!
+}
+
+"""
+Information about pagination in a connection.
+"""
+type PageInfo {
+  """
+  Indicates if there are more pages to fetch.
+  """
+  hasNextPage: Boolean!
+  """
+  Indicates if there are any pages prior to the current page.
+  """
+  hasPreviousPage: Boolean!
+}
+
+"""
+The input fields for a selected option.
+"""
+input SelectedOptionInput {
+  """
+  The product option's name.
+  """
+  name: String!
+  """
+  The product option's value.
+  """
+  value: String!
+}
+
+"""
+An auto-generated type for paginating through multiple ProductVariants.
+"""
+type ProductVariantConnection {
+  """
+  A list of edges.
+  """
+  edges: [ProductVariantEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+An auto-generated type which holds one ProductVariant and a cursor during pagination.
+"""
+type ProductVariantEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+  """
+  The item at the end of ProductVariantEdge.
+  """
+  node: ProductVariant!
+}
+
+"""
+Represents an association between a variant and a selling plan. Selling plan
+allocations describe the options offered for each variant, and the price of the
+variant when purchased with a selling plan.
+"""
+type SellingPlanAllocation {
+  """
+  A list of price adjustments, with a maximum of two. When there are two, the
+  first price adjustment goes into effect at the time of purchase, while the
+  second one starts after a certain number of orders. A price adjustment
+  represents how a selling plan affects pricing when a variant is purchased with
+  a selling plan. Prices display in the customer's currency if the shop is
+  configured for it.
+  """
+  priceAdjustments: [SellingPlanAllocationPriceAdjustment!]!
+  """
+  A representation of how products and variants can be sold and purchased. For
+  example, an individual selling plan could be '6 weeks of prepaid granola,
+  delivered weekly'.
+  """
+  sellingPlan: SellingPlan!
+}
+
+"""
+The resulting prices for variants when they're purchased with a specific selling plan.
+"""
+type SellingPlanAllocationPriceAdjustment {
+  """
+  The effective price for a single delivery. For example, for a prepaid
+  subscription plan that includes 6 deliveries at the price of $48.00, the per
+  delivery price is $8.00.
+  """
+  perDeliveryPrice: MoneyV2!
+  """
+  The price of the variant when it's purchased with a selling plan For example,
+  for a prepaid subscription plan that includes 6 deliveries of $10.00 granola,
+  where the customer gets 20% off, the price is 6 x $10.00 x 0.80 = $48.00.
+  """
+  price: MoneyV2!
+}
+
+"""
+Represents how products and variants can be sold and purchased.
+"""
+type SellingPlan implements HasMetafields {
+  """
+  The description of the selling plan.
+  """
+  description: String
+  """
+  A globally-unique identifier.
+  """
+  id: ID!
+  """
+  Returns a metafield by namespace and key that belongs to the resource.
+  """
+  metafield(
+    """
+    The key for the metafield.
+    """
+    key: String!
+    """
+    The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
+    """
+    namespace: String
+  ): Metafield
+  """
+  The name of the selling plan. For example, '6 weeks of prepaid granola, delivered weekly'.
+  """
+  name: String!
+  """
+  Whether purchasing the selling plan will result in multiple deliveries.
+  """
+  recurringDeliveries: Boolean!
+}
+
+"""
+Units of measurement for weight.
+"""
+enum WeightUnit {
+  """
+  Metric system unit of mass.
+  """
+  GRAMS
+  """
+  1 kilogram equals 1000 grams.
+  """
+  KILOGRAMS
+  """
+  Imperial system unit of mass.
+  """
+  OUNCES
+  """
+  1 pound equals 16 ounces.
+  """
+  POUNDS
+}
+
+"""
+Represents a URL.
+"""
+scalar URL
+
+"""
+The cart transform function result.
+"""
+type CartTransformResult {
+  """
+  The operations to be applied to the cart.
+  """
+  operations: [CartOperation!]!
+  """
+  The errors that occurred during the cart transform.
+  """
+  errors: [CartTransformError!]
+}
+
+"""
+A cart operation.
+"""
+union CartOperation = ExpandOperation | MergeOperation | UpdateOperation
+
+"""
+A cart line expand operation.
+"""
+type ExpandOperation {
+  """
+  The ID of the cart line.
+  """
+  cartLineId: ID!
+  """
+  The expanded cart items.
+  """
+  expandedCartItems: [ExpandedCartItem!]!
+  """
+  The title of the expanded cart line.
+  """
+  title: String
+}
+
+"""
+An expanded cart item.
+"""
+type ExpandedCartItem {
+  """
+  The ID of the merchandise.
+  """
+  merchandiseId: ID!
+  """
+  The quantity of the merchandise.
+  """
+  quantity: Int!
+  """
+  The price adjustment for the cart line item.
+  """
+  price: ExpandedCartItemPriceAdjustment
+}
+
+"""
+A price adjustment to apply to an expanded cart item.
+"""
+type ExpandedCartItemPriceAdjustment {
+  """
+  The price adjustment to apply to the expanded cart item.
+  """
+  adjustment: ExpandedCartItemPriceAdjustmentValue!
+}
+
+"""
+A price adjustment value to apply to an expanded cart item.
+"""
+union ExpandedCartItemPriceAdjustmentValue = FixedPricePerUnit
+
+"""
+A fixed price per unit adjustment to apply to an expanded cart item.
+"""
+type FixedPricePerUnit {
+  """
+  The fixed price amount per quantity of the expanded cart item in presentment currency.
+  """
+  amount: Decimal!
+  """
+  The currency code of the fixed price amount.
+  """
+  currencyCode: CurrencyCode!
+}
+
+"""
+A cart line merge operation.
+"""
+type MergeOperation {
+  """
+  The IDs of the cart lines to merge.
+  """
+  cartLineIds: [ID!]!
+  """
+  The ID of the parent variant.
+  """
+  parentVariantId: ID!
+  """
+  The title of the merged cart line.
+  """
+  title: String
+  """
+  The price adjustment for the merged cart line.
+  """
+  price: MergeOperationPriceAdjustment
+}
+
+"""
+A price adjustment to apply to a merged cart line.
+"""
+type MergeOperationPriceAdjustment {
+  """
+  The price adjustment to apply to the merged cart line.
+  """
+  adjustment: MergeOperationPriceAdjustmentValue!
+}
+
+"""
+A price adjustment value to apply to a merged cart line.
+"""
+union MergeOperationPriceAdjustmentValue = FixedPrice
+
+"""
+A fixed price adjustment to apply to a merged cart line.
+"""
+type FixedPrice {
+  """
+  The fixed price amount for the merged cart line in presentment currency.
+  """
+  amount: Decimal!
+  """
+  The currency code of the fixed price amount.
+  """
+  currencyCode: CurrencyCode!
+}
+
+"""
+A cart line update operation.
+"""
+type UpdateOperation {
+  """
+  The ID of the cart line.
+  """
+  cartLineId: ID!
+  """
+  The title of the updated cart line.
+  """
+  title: String
+  """
+  The price adjustment for the updated cart line.
+  """
+  price: UpdateOperationPriceAdjustment
+}
+
+"""
+A price adjustment to apply to an updated cart line.
+"""
+type UpdateOperationPriceAdjustment {
+  """
+  The price adjustment to apply to the updated cart line.
+  """
+  adjustment: UpdateOperationPriceAdjustmentValue!
+}
+
+"""
+A price adjustment value to apply to an updated cart line.
+"""
+union UpdateOperationPriceAdjustmentValue = FixedPricePerUnit
+
+"""
+A cart transform error.
+"""
+type CartTransformError {
+  """
+  The error code.
+  """
+  code: CartTransformErrorCode!
+  """
+  The error message.
+  """
+  message: String!
+}
+
+"""
+The error codes for cart transform errors.
+"""
+enum CartTransformErrorCode {
+  """
+  The input is invalid.
+  """
+  INVALID_INPUT
+  """
+  The operation is invalid.
+  """
+  INVALID_OPERATION
+  """
+  The merchandise was not found.
+  """
+  MERCHANDISE_NOT_FOUND
+  """
+  The cart line was not found.
+  """
+  CART_LINE_NOT_FOUND
+  """
+  The operation failed.
+  """
+  OPERATION_FAILED
+}
