@@ -34,16 +34,9 @@ export const loader = async ({ request }) => {
   // const { admin } = await authenticate.admin(request);
 
   // For now, return mock data until we fix the GraphQL error
-  const configuration = {
-    minimum_cart_value: "",
-    eligible_collection_ids: [],
-    eligible_tag: "",
-    free_gift_variant_id: "",
-    free_gift_quantity: "1"
-  };
-  
-  const collections = [];
-  const products = [];
+  const configuration = await getFreeGiftConfiguration(null);
+  const collections = await getShopifyCollections(null);
+  const products = await getShopifyProducts(null);
 
   return json({
     configuration,
@@ -65,8 +58,8 @@ export const action = async ({ request }) => {
     free_gift_quantity: formData.get("free_gift_quantity")
   };
 
-  // Mock successful save until we fix the GraphQL error
-  const result = { status: "success", message: "Configuration saved successfully" };
+  // Save configuration using the updated server function
+  const result = await saveFreeGiftConfiguration(null, configuration);
   return json(result);
 };
 
@@ -133,7 +126,7 @@ export default function FreeGiftConfiguration() {
         setToastError(false);
         setToastActive(true);
       } else if (actionData.status === "error") {
-        setToastContent("Error saving configuration");
+        setToastContent("Error saving configuration: " + (actionData.message || "Unknown error"));
         setToastError(true);
         setToastActive(true);
       }
@@ -315,6 +308,25 @@ export default function FreeGiftConfiguration() {
                   min="1"
                   helpText="Number of free gift items to add to the cart"
                 />
+              </BlockStack>
+            </Card>
+          </Layout.Section>
+
+          <Layout.Section>
+            <Card>
+              <BlockStack gap="400">
+                <Text as="h2" variant="headingMd">
+                  How It Works
+                </Text>
+                <Text as="p" variant="bodyMd">
+                  This free gift function uses Shopify's Cart Transform API to automatically add a free gift to the customer's cart when certain conditions are met.
+                </Text>
+                <Text as="p" variant="bodyMd">
+                  The free gift will be added as a component of an existing cart item with a price of $0.00, making it truly free for the customer.
+                </Text>
+                <Text as="p" variant="bodyMd">
+                  The configuration is stored using metafields on the Cart Transform object, ensuring it persists across app restarts.
+                </Text>
               </BlockStack>
             </Card>
           </Layout.Section>

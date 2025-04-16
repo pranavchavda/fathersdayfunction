@@ -14,12 +14,88 @@ export async function saveFreeGiftConfiguration(admin, configuration) {
       };
     }
     
-    const response = await admin.graphql(
-      `mutation UpdateFunctionConfiguration($functionId: ID!, $configuration: JSON!) {
-        functionConfigurationUpdate(
-          functionId: $functionId,
-          configuration: $configuration
+    // First, get the Cart Transform ID
+    const cartTransformResponse = await admin.graphql(
+      `query GetCartTransforms {
+        cartTransforms(first: 10) {
+          edges {
+            node {
+              id
+              title
+            }
+          }
+        }
+      }`
+    );
+    
+    const cartTransformJson = await cartTransformResponse.json();
+    const cartTransforms = cartTransformJson.data?.cartTransforms?.edges || [];
+    
+    // Find the Free Gift Cart Transform or use the first one
+    let cartTransformId = null;
+    for (const edge of cartTransforms) {
+      if (edge.node.title.toLowerCase().includes("free gift")) {
+        cartTransformId = edge.node.id;
+        break;
+      }
+    }
+    
+    // If no matching Cart Transform found, create one
+    if (!cartTransformId && cartTransforms.length > 0) {
+      cartTransformId = cartTransforms[0].node.id;
+    }
+    
+    // If still no Cart Transform, create one
+    if (!cartTransformId) {
+      const createResponse = await admin.graphql(
+        `mutation cartTransformCreate {
+          cartTransformCreate(
+            cartTransform: {
+              title: "Free Gift Cart Transform",
+              description: "Adds a free gift to the cart based on specific criteria",
+              enabled: true
+            }
+          ) {
+            cartTransform {
+              id
+            }
+            userErrors {
+              field
+              message
+            }
+          }
+        }`
+      );
+      
+      const createJson = await createResponse.json();
+      cartTransformId = createJson.data?.cartTransformCreate?.cartTransform?.id;
+      
+      if (!cartTransformId) {
+        const errors = createJson.data?.cartTransformCreate?.userErrors || [];
+        return {
+          status: "error",
+          errors
+        };
+      }
+    }
+    
+    // Now set the metafield on the Cart Transform
+    const metafieldResponse = await admin.graphql(
+      `mutation metafieldSet($ownerId: ID!, $namespace: String!, $key: String!, $value: String!) {
+        metafieldSet(
+          metafield: {
+            ownerId: $ownerId,
+            namespace: $namespace,
+            key: $key,
+            type: "json",
+            value: $value
+          }
         ) {
+          metafield {
+            id
+            namespace
+            key
+          }
           userErrors {
             field
             message
@@ -28,14 +104,16 @@ export async function saveFreeGiftConfiguration(admin, configuration) {
       }`,
       {
         variables: {
-          functionId: "free-gift",
-          configuration
+          ownerId: cartTransformId,
+          namespace: "cart_transform",
+          key: "function_configuration",
+          value: JSON.stringify(configuration)
         }
       }
     );
     
-    const responseJson = await response.json();
-    const userErrors = responseJson.data?.functionConfigurationUpdate?.userErrors || [];
+    const metafieldJson = await metafieldResponse.json();
+    const userErrors = metafieldJson.data?.metafieldSet?.userErrors || [];
     
     if (userErrors.length > 0) {
       return {
@@ -77,18 +155,22 @@ export async function getFreeGiftConfiguration(admin) {
   }
   
   try {
-    // Updated query to match the expected schema
-    // Instead of using extensionByHandle which doesn't exist, we'll use a more generic approach
-    const response = await admin.graphql(
-      `query GetFunctions {
-        app {
-          functions(first: 10) {
-            edges {
-              node {
-                id
-                title
-                apiType
-                apiVersion
+    // First, get the Cart Transform ID
+    const cartTransformResponse = await admin.graphql(
+      `query GetCartTransforms {
+        cartTransforms(first: 10) {
+          edges {
+            node {
+              id
+              title
+              metafields(first: 10) {
+                edges {
+                  node {
+                    namespace
+                    key
+                    value
+                  }
+                }
               }
             }
           }
@@ -96,11 +178,36 @@ export async function getFreeGiftConfiguration(admin) {
       }`
     );
     
-    const responseJson = await response.json();
-    console.log("Functions response:", JSON.stringify(responseJson, null, 2));
+    const cartTransformJson = await cartTransformResponse.json();
+    const cartTransforms = cartTransformJson.data?.cartTransforms?.edges || [];
     
-    // For now, return the default configuration
-    // In a production environment, you would parse the response and find the right function
+    // Find the Free Gift Cart Transform or use the first one
+    let configMetafield = null;
+    for (const edge of cartTransforms) {
+      const metafields = edge.node.metafields?.edges || [];
+      for (const metaEdge of metafields) {
+        if (metaEdge.node.namespace === "cart_transform" && metaEdge.node.key === "function_configuration") {
+          configMetafield = metaEdge.node;
+          break;
+        }
+      }
+      if (configMetafield) break;
+    }
+    
+    // If metafield found, parse the configuration
+    if (configMetafield && configMetafield.value) {
+      try {
+        const parsedConfig = JSON.parse(configMetafield.value);
+        return {
+          ...defaultConfig,
+          ...parsedConfig
+        };
+      } catch (parseError) {
+        console.error("Error parsing configuration metafield:", parseError);
+      }
+    }
+    
+    // Return default if no valid configuration found
     return defaultConfig;
   } catch (error) {
     console.error("Error fetching configuration:", error);
@@ -112,10 +219,14 @@ export async function getFreeGiftConfiguration(admin) {
  * Helper function to fetch collections for the configuration interface
  */
 export async function getShopifyCollections(admin) {
-  // If admin is not provided (when authentication is removed), return empty array
+  // If admin is not provided (when authentication is removed), return mock data
   if (!admin) {
-    console.log("Returning empty collections (no admin provided)");
-    return [];
+    console.log("Returning mock collections (no admin provided)");
+    return [
+      { id: "gid://shopify/Collection/123456789", title: "Summer Collection" },
+      { id: "gid://shopify/Collection/987654321", title: "Father's Day Collection" },
+      { id: "gid://shopify/Collection/456789123", title: "Best Sellers" }
+    ];
   }
   
   try {
@@ -147,10 +258,41 @@ export async function getShopifyCollections(admin) {
  * Helper function to fetch products for the configuration interface
  */
 export async function getShopifyProducts(admin) {
-  // If admin is not provided (when authentication is removed), return empty array
+  // If admin is not provided (when authentication is removed), return mock data
   if (!admin) {
-    console.log("Returning empty products (no admin provided)");
-    return [];
+    console.log("Returning mock products (no admin provided)");
+    return [
+      {
+        id: "gid://shopify/Product/123456",
+        title: "Father's Day Special Gift",
+        variants: [
+          {
+            id: "gid://shopify/ProductVariant/987654321",
+            title: "Default",
+            price: "19.99",
+            image: "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png"
+          }
+        ]
+      },
+      {
+        id: "gid://shopify/Product/234567",
+        title: "Premium Gift Set",
+        variants: [
+          {
+            id: "gid://shopify/ProductVariant/876543210",
+            title: "Small",
+            price: "24.99",
+            image: "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png"
+          },
+          {
+            id: "gid://shopify/ProductVariant/765432109",
+            title: "Large",
+            price: "34.99",
+            image: "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png"
+          }
+        ]
+      }
+    ];
   }
   
   try {

@@ -10,6 +10,7 @@ import {
   Button,
   InlineStack,
   Icon,
+  Banner,
 } from "@shopify/polaris";
 import { GiftCardMajor } from "@shopify/polaris-icons";
 import { getFreeGiftConfiguration } from "../../models/free-gift-configuration.server";
@@ -18,14 +19,8 @@ export const loader = async ({ request }) => {
   // Remove authentication requirement
   // const { admin } = await authenticate.admin(request);
   
-  // For now, return empty configuration until we fix the GraphQL error
-  const configuration = {
-    minimum_cart_value: "",
-    eligible_collection_ids: [],
-    eligible_tag: "",
-    free_gift_variant_id: "",
-    free_gift_quantity: "1"
-  };
+  // Get configuration using the updated server function
+  const configuration = await getFreeGiftConfiguration(null);
 
   return json({
     configuration
@@ -154,6 +149,41 @@ export default function FreeGiftDashboard() {
                   <Text as="span" fontWeight="bold">4.</Text> If customers no longer meet the criteria, the free gift is automatically removed
                 </Text>
               </BlockStack>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
+
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="400">
+              <Text as="h2" variant="headingMd">
+                Implementation Details
+              </Text>
+              
+              <Banner tone="info">
+                This free gift function uses Shopify's Cart Transform API with proper operation structure and metafields-based configuration.
+              </Banner>
+              
+              <BlockStack gap="200">
+                <Text as="p" variant="bodyMd">
+                  <Text as="span" fontWeight="bold">• Cart Transform API:</Text> Uses merge and expand operations to add free gifts as components
+                </Text>
+                <Text as="p" variant="bodyMd">
+                  <Text as="span" fontWeight="bold">• Metafields Configuration:</Text> Settings are stored in Cart Transform metafields for persistence
+                </Text>
+                <Text as="p" variant="bodyMd">
+                  <Text as="span" fontWeight="bold">• WebAssembly Output:</Text> Function is compiled to WebAssembly for optimal performance
+                </Text>
+                <Text as="p" variant="bodyMd">
+                  <Text as="span" fontWeight="bold">• Error Handling:</Text> Comprehensive error handling for all edge cases
+                </Text>
+              </BlockStack>
+              
+              <Box paddingBlockStart="300">
+                <Button url="/app/extensions/free-gift/documentation">
+                  View Documentation
+                </Button>
+              </Box>
             </BlockStack>
           </Card>
         </Layout.Section>

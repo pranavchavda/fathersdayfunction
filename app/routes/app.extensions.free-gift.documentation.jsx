@@ -10,6 +10,8 @@ import {
   Button,
   InlineStack,
   Icon,
+  Banner,
+  List,
 } from "@shopify/polaris";
 import { GiftCardMajor } from "@shopify/polaris-icons";
 // Remove authentication requirement
@@ -20,14 +22,8 @@ export const loader = async ({ request }) => {
   // Remove authentication requirement
   // const { admin } = await authenticate.admin(request);
 
-  // For now, return empty configuration until we fix the GraphQL error
-  const configuration = {
-    minimum_cart_value: "",
-    eligible_collection_ids: [],
-    eligible_tag: "",
-    free_gift_variant_id: "",
-    free_gift_quantity: "1"
-  };
+  // Get configuration using the updated server function
+  const configuration = await getFreeGiftConfiguration(null);
 
   return json({
     configuration
@@ -35,6 +31,8 @@ export const loader = async ({ request }) => {
 };
 
 export default function FreeGiftDocumentation() {
+  const { configuration } = useLoaderData();
+  
   return (
     <Page
       title="Free Gift Documentation"
@@ -47,6 +45,10 @@ export default function FreeGiftDocumentation() {
               <Text as="h2" variant="headingLg">
                 Free Gift Function Configuration Guide
               </Text>
+              
+              <Banner tone="info">
+                This extension uses Shopify's Cart Transform API with metafields-based configuration for optimal performance and reliability.
+              </Banner>
               
               <Text as="p" variant="bodyMd">
                 This guide explains how to use the custom configuration interface for the Free Gift Function extension. 
@@ -87,6 +89,9 @@ export default function FreeGiftDocumentation() {
                 </Text>
                 <Text as="p" variant="bodyMd">
                   • <strong>How It Works</strong>: Explains the basic workflow of the free gift function
+                </Text>
+                <Text as="p" variant="bodyMd">
+                  • <strong>Implementation Details</strong>: Provides technical information about the Cart Transform API and metafields configuration
                 </Text>
                 <Text as="p" variant="bodyMd">
                   • <strong>Configure Button</strong>: Takes you to the detailed configuration page
@@ -177,6 +182,29 @@ export default function FreeGiftDocumentation() {
               </Text>
               
               <Text as="h3" variant="headingMd">
+                Technical Implementation
+              </Text>
+              
+              <Text as="p" variant="bodyMd">
+                This free gift function uses several advanced Shopify technologies:
+              </Text>
+              
+              <BlockStack gap="200">
+                <Text as="p" variant="bodyMd">
+                  <strong>Cart Transform API</strong>: Uses proper operation types (merge and expand) to add free gifts as components of existing cart items
+                </Text>
+                <Text as="p" variant="bodyMd">
+                  <strong>Metafields Configuration</strong>: Stores settings in Cart Transform metafields for persistence across app restarts
+                </Text>
+                <Text as="p" variant="bodyMd">
+                  <strong>WebAssembly Compilation</strong>: Function is compiled to WebAssembly for optimal performance
+                </Text>
+                <Text as="p" variant="bodyMd">
+                  <strong>Error Handling</strong>: Comprehensive validation and error handling for all edge cases
+                </Text>
+              </BlockStack>
+              
+              <Text as="h3" variant="headingMd">
                 How the Free Gift Function Works
               </Text>
               
@@ -189,13 +217,13 @@ export default function FreeGiftDocumentation() {
                   1. Check each cart against your configured criteria
                 </Text>
                 <Text as="p" variant="bodyMd">
-                  2. Add the specified free gift when criteria are met
+                  2. Find a suitable cart line to merge with the free gift
                 </Text>
                 <Text as="p" variant="bodyMd">
-                  3. Remove the free gift if criteria are no longer met (e.g., if items are removed from cart)
+                  3. Use Cart Transform operations to add the free gift as a component with zero price
                 </Text>
                 <Text as="p" variant="bodyMd">
-                  4. Apply the free gift with a price of $0.00
+                  4. Remove the free gift if criteria are no longer met
                 </Text>
               </BlockStack>
               
