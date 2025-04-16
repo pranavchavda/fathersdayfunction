@@ -12,7 +12,7 @@ input_query = "src/run.graphql"
 export = "run"
 
 [extensions.build]
-command = ""
+command = "npm run build"
 path = "dist/function.wasm"
 
 [extensions.ui.paths]
