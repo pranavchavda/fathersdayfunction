@@ -1,0 +1,17 @@
+{
+  "name": "free-gift",
+  "version": "1.0.0",
+  "description": "Shopify Function to add free gifts based on cart criteria",
+  "main": "dist/function.wasm",
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@shopify/shopify-api": "^7.5.0"
+  },
+  "devDependencies": {
+    "vite": "^4.4.9",
+    "vitest": "^0.34.3"
+  }
+}

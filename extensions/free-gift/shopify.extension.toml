@@ -1,0 +1,31 @@
+api_version = "2024-10"
+
+[[extensions]]
+name = "Free Gift"
+handle = "free-gift"
+type = "function"
+description = "Adds a free gift to the cart based on specific criteria"
+
+[[extensions.targeting]]
+target = "purchase.cart-transform.run"
+input_query = "src/run.graphql"
+export = "run"
+
+[extensions.build]
+command = ""
+path = "dist/function.wasm"
+
+[extensions.ui.paths]
+create = "/"
+details = "/"
+
+[extensions.input.variables]
+namespace = "cart_transform"
+key = "function_configuration"
+
+[extensions.input.variables.fields]
+minimum_cart_value = "string"
+eligible_collection_ids = "list_of_strings"
+eligible_tag = "string"
+free_gift_variant_id = "string"
+free_gift_quantity = "string"

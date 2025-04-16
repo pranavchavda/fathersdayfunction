@@ -1,0 +1,12 @@
+{
+  "name": "free-gift-test",
+  "version": "1.0.0",
+  "description": "Tests for Shopify Function to add free gifts based on cart criteria",
+  "main": "run.test.js",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^0.34.3"
+  }
+}
