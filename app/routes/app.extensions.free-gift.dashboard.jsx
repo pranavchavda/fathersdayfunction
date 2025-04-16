@@ -1,5 +1,5 @@
 import { json } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import {
   Page,
   Layout,
@@ -13,30 +13,13 @@ import {
 } from "@shopify/polaris";
 import { GiftCardMajor } from "@shopify/polaris-icons";
 import { authenticate } from "../../shopify.server";
+import { getFreeGiftConfiguration } from "../../models/free-gift-configuration.server";
 
 export const loader = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
 
-  // Fetch current configuration
-  let configuration = {};
-  try {
-    const response = await admin.graphql(
-      `query GetFunctionConfiguration {
-        app {
-          extensionByHandle(handle: "free-gift") {
-            ... on FunctionExtension {
-              configuration
-            }
-          }
-        }
-      }`
-    );
-    const responseJson = await response.json();
-    configuration = responseJson.data.app.extensionByHandle?.configuration || {};
-  } catch (error) {
-    console.error("Error fetching configuration:", error);
-    configuration = {};
-  }
+  // Fetch current configuration using the centralized helper function
+  const configuration = await getFreeGiftConfiguration(admin);
 
   return json({
     configuration
@@ -87,6 +70,14 @@ export default function FreeGiftDashboard() {
                       <Box paddingBlockStart="200">
                         <Text as="p" variant="bodyMd">
                           <Text as="span" fontWeight="bold">Minimum Cart Value:</Text> ${configuration.minimum_cart_value}
+                        </Text>
+                      </Box>
+                    )}
+                    
+                    {configuration.eligible_collection_ids && configuration.eligible_collection_ids.length > 0 && (
+                      <Box paddingBlockStart="200">
+                        <Text as="p" variant="bodyMd">
+                          <Text as="span" fontWeight="bold">Eligible Collections:</Text> {configuration.eligible_collection_ids.length} collection(s) selected
                         </Text>
                       </Box>
                     )}
