@@ -13,7 +13,7 @@ import {
   Banner,
   List,
 } from "@shopify/polaris";
-import { GiftCardMajor } from "@shopify/polaris-icons";
+import { GiftCardIcon } from "@shopify/polaris-icons";
 // Remove authentication requirement
 // import { authenticate } from "../../shopify.server";
 import { getFreeGiftConfiguration } from "../../models/free-gift-configuration.server";

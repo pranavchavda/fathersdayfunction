@@ -12,7 +12,7 @@ import {
   Icon,
   Banner,
 } from "@shopify/polaris";
-import { GiftCardMajor } from "@shopify/polaris-icons";
+import { GiftCardIcon } from "@shopify/polaris-icons";
 import { getFreeGiftConfiguration } from "../../models/free-gift-configuration.server";
 
 export const loader = async ({ request }) => {
@@ -49,7 +49,7 @@ export default function FreeGiftDashboard() {
           <Card>
             <BlockStack gap="500">
               <InlineStack gap="400" align="center">
-                <Icon source={GiftCardMajor} color="base" />
+                <Icon source={GiftCardIcon} color="base" />
                 <Text as="h2" variant="headingLg">
                   Father's Day Free Gift
                 </Text>
