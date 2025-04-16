@@ -24,13 +24,13 @@ input CartTransformInput {
   """
   The cart transform metafield.
   """
-  cartTransform: CartTransformInput
+  cartTransform: CartTransformMetafieldInput
 }
 
 """
-The cart transform.
+The cart transform metafield input.
 """
-input CartTransformInput {
+input CartTransformMetafieldInput {
   """
   Returns a metafield by namespace and key that belongs to the resource.
   """
@@ -1274,13 +1274,76 @@ enum CartTransformErrorCode {
 }
 
 """
+The cart transform output type.
+"""
+type CartTransform {
+  """
+  The metafield associated with the cart transform.
+  """
+  metafield: Metafield
+}
+
+"""
+A metafield is a key-value pair that can be attached to various resources in the
+Shopify ecosystem. It can store custom information.
+"""
+type Metafield {
+  """
+  The date and time when the metafield was created.
+  """
+  createdAt: DateTime!
+  """
+  The description of a metafield.
+  """
+  description: String
+  """
+  A globally-unique identifier.
+  """
+  id: ID!
+  """
+  The key name for a metafield.
+  """
+  key: String!
+  """
+  The namespace for a metafield.
+  """
+  namespace: String!
+  """
+  The type of resource that the metafield is attached to.
+  """
+  parentResource: MetafieldParentResource!
+  """
+  The type of data stored in the metafield.
+  """
+  type: String!
+  """
+  The date and time when the metafield was updated.
+  """
+  updatedAt: DateTime!
+  """
+  The value of a metafield.
+  """
+  value: String!
+}
+
+"""
+A resource that the metafield belongs to.
+"""
+type MetafieldParentResource {
+  """
+  The type of resource that the metafield belongs to.
+  """
+  type: MetafieldParentResourceType!
+}
+
+"""
 The root query type.
 """
 type Input {
   """
-  The input for the cart transform function.
+  The cart transform for the function.
   """
-  cartTransform: CartTransformInput
+  cartTransform: CartTransform
 }
 
 """
