@@ -1,4 +1,4 @@
-import { Page, Layout, Text, Card, BlockStack } from "@shopify/polaris";
+import { Page, Layout, Text, Card, BlockStack, Link } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 
@@ -14,7 +14,21 @@ export default function Index() {
       <BlockStack gap="500">
         <Layout>
           <Layout.Section>
-            <Card>See Link on the left to create a new Tiered Discount</Card>
+            <Card>
+              <BlockStack gap="400">
+                <Text as="h2" variant="headingMd">
+                  Available Functions
+                </Text>
+                <BlockStack gap="200">
+                  <Text as="p" variant="bodyMd">
+                    <Link url="/app/tiered-coupon">Tiered Discount</Link> - Create tiered discounts based on cart value
+                  </Text>
+                  <Text as="p" variant="bodyMd">
+                    <Link url="/app/extensions/free-gift/dashboard">Father's Day Free Gift</Link> - Add free gifts to cart based on specific criteria
+                  </Text>
+                </BlockStack>
+              </BlockStack>
+            </Card>
           </Layout.Section>
           <Layout.Section variant="oneThird">
             <BlockStack gap="500">
