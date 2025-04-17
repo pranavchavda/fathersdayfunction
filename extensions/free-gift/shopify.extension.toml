@@ -1,4 +1,4 @@
-api_version = "2024-10"
+api_version = "2024-07"
 
 [[extensions]]
 name = "Free Gift"
@@ -14,19 +14,7 @@ export = "run"
 [extensions.build]
 command = ""
 path = "dist/function.wasm"
-watch = ["src/**/*.js", "src/**/*.ts"]
 
 [extensions.ui.paths]
-create = "/"
-details = "/"
-
-[extensions.input.variables]
-namespace = "cart_transform"
-key = "function_configuration"
-
-[extensions.input.variables.fields]
-minimum_cart_value = "string"
-eligible_collection_ids = "list_of_strings"
-eligible_tag = "string"
-free_gift_variant_id = "string"
-free_gift_quantity = "string"
+create = "/app/extensions/free-gift/dashboard"
+details = "/app/extensions/free-gift/dashboard"

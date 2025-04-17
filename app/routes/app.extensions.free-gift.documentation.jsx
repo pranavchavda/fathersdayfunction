@@ -15,8 +15,8 @@ import {
 } from "@shopify/polaris";
 import { GiftCardIcon } from "@shopify/polaris-icons";
 // Remove authentication requirement
-// import { authenticate } from "../../shopify.server";
-import { getFreeGiftConfiguration } from "../../models/free-gift-configuration.server";
+// import { authenticate } from "../shopify.server";
+import { getFreeGiftConfiguration } from "../models/free-gift-configuration.server";
 
 export const loader = async ({ request }) => {
   // Remove authentication requirement

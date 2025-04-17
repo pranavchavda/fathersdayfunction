@@ -4,11 +4,6 @@ schema {
 }
 
 """
-Scale the Functions resource limits based on the field's length.
-"""
-directive @scaleLimits(rate: Float!) on FIELD_DEFINITION
-
-"""
 Requires that exactly one field must be supplied and that field must not be `null`.
 """
 directive @oneOf on INPUT_OBJECT

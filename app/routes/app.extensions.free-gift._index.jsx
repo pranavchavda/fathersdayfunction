@@ -21,13 +21,13 @@ import {
   Frame,
 } from "@shopify/polaris";
 // Remove authentication requirement
-// import { authenticate } from "../../shopify.server";
+// import { authenticate } from "../shopify.server";
 import { 
   getFreeGiftConfiguration, 
   getShopifyCollections, 
   getShopifyProducts,
   saveFreeGiftConfiguration
-} from "../../models/free-gift-configuration.server";
+} from "../models/free-gift-configuration.server";
 
 export const loader = async ({ request }) => {
   // Remove authentication requirement

@@ -1,52 +1,5 @@
 query RunInput {
-  cart {
-    lines {
-      id
-      quantity
-      merchandise {
-        __typename
-        ... on ProductVariant {
-          id
-          title
-          price {
-            amount
-            currencyCode
-          }
-          product {
-            id
-            title
-            collections(first: 10) {
-              edges {
-                node {
-                  id
-                }
-              }
-            }
-            tags
-          }
-        }
-      }
-      cost {
-        totalAmount {
-          amount
-          currencyCode
-        }
-      }
-    }
-    cost {
-      subtotalAmount {
-        amount
-        currencyCode
-      }
-      totalAmount {
-        amount
-        currencyCode
-      }
-    }
-  }
   cartTransform {
-    metafield(namespace: "custom", key: "function_configuration") {
-      value
-    }
+    __typename
   }
 }

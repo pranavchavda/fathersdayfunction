@@ -1,0 +1,32 @@
+{
+  "cartTransform": {
+    "metafield": {
+      "value": "{\"minimum_cart_value\":\"50.00\",\"eligible_collection_ids\":[\"gid://shopify/Collection/123456789\"],\"eligible_tag\":\"fathers-day\",\"free_gift_variant_id\":\"gid://shopify/ProductVariant/987654321\",\"free_gift_quantity\":1}"
+    }
+  },
+  "cart": {
+    "id": "gid://shopify/Cart/1",
+    "lines": [
+      {
+        "id": "gid://shopify/CartLine/1",
+        "quantity": 1,
+        "merchandise": {
+          "__typename": "ProductVariant",
+          "id": "gid://shopify/ProductVariant/123456"
+        },
+        "cost": {
+          "totalAmount": {
+            "amount": "100.00",
+            "currencyCode": "USD"
+          }
+        }
+      }
+    ],
+    "cost": {
+      "subtotalAmount": {
+        "amount": "100.00",
+        "currencyCode": "USD"
+      }
+    }
+  }
+}
