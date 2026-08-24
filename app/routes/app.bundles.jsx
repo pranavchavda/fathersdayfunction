@@ -94,6 +94,15 @@ export const action = async ({ request }) => {
 /* Client helpers                                                      */
 /* ------------------------------------------------------------------ */
 
+async function pick(shopify, options) {
+  try {
+    return await shopify.resourcePicker(options);
+  } catch (err) {
+    shopify.toast.show(`Picker failed: ${err?.message || err}`, { isError: true });
+    return null;
+  }
+}
+
 function variantLabel(v) {
   if (!v) return "";
   return v.displayName || [v.product?.title, v.title].filter(Boolean).join(" – ") || v.id;
@@ -117,9 +126,9 @@ function ResultBanner({ data, onDismiss }) {
   return (
     <Banner tone="success" onDismiss={onDismiss}>
       <p>
-        {verb} {data.count} product{data.count === 1 ? "" : "s"}. The storefront
-        picks the change up on the next cart update (Hydrogen caches product
-        data for a few minutes).
+        {verb} {data.count} product{data.count === 1 ? "" : "s"}. Carts pick
+        the change up on their next update; the storefront may cache product
+        data for a few minutes.
       </p>
     </Banner>
   );
@@ -130,7 +139,7 @@ function ResultBanner({ data, onDismiss }) {
 /* ------------------------------------------------------------------ */
 
 export default function BundlesPage() {
-  const { shop, products } = useLoaderData();
+  const { shop, products: loaderProducts } = useLoaderData();
   const fetcher = useFetcher();
   const shopify = useAppBridge();
 
@@ -141,6 +150,22 @@ export default function BundlesPage() {
   const [confirmRemove, setConfirmRemove] = useState(false);
 
   const busy = fetcher.state !== "idle";
+
+  // The table is driven by a tag search that lags Shopify's search index by
+  // a few seconds; overlay the rows the last action touched so the list is
+  // right immediately (the loader catches up on the next navigation).
+  const products = useMemo(() => {
+    if (!result || result.errors?.length) return loaderProducts;
+    if (result.intent === "remove") {
+      const gone = new Set(result.removedIds || []);
+      return loaderProducts.filter((p) => !gone.has(p.id));
+    }
+    const fresh = result.products || [];
+    const freshIds = new Set(fresh.map((p) => p.id));
+    return [...fresh, ...loaderProducts.filter((p) => !freshIds.has(p.id))].sort((a, b) =>
+      a.title.localeCompare(b.title)
+    );
+  }, [result, loaderProducts]);
 
   useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data) {
@@ -156,7 +181,7 @@ export default function BundlesPage() {
 
   /* ---- pickers ---- */
   const pickProducts = useCallback(async () => {
-    const picked = await shopify.resourcePicker({
+    const picked = await pick(shopify, {
       type: "product",
       multiple: true,
       action: "select",
@@ -167,7 +192,7 @@ export default function BundlesPage() {
   }, [shopify, selectedProducts]);
 
   const pickGifts = useCallback(async () => {
-    const picked = await shopify.resourcePicker({
+    const picked = await pick(shopify, {
       type: "variant",
       multiple: true,
       action: "select",
@@ -184,7 +209,7 @@ export default function BundlesPage() {
   }, [shopify, gifts]);
 
   const pickChoices = useCallback(async () => {
-    const picked = await shopify.resourcePicker({
+    const picked = await pick(shopify, {
       type: "variant",
       multiple: true,
       action: "select",
