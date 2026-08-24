@@ -191,12 +191,14 @@ export default function BundlesPage() {
     setSelectedProducts(picked.map((p) => ({ id: p.id, title: p.title })));
   }, [shopify, selectedProducts]);
 
+  // Variant pickers open without preselection: App Bridge's selectionIds
+  // shape for variants ({id: product, variants: [...]}) isn't worth the risk
+  // of a rejected call for a nicety.
   const pickGifts = useCallback(async () => {
     const picked = await pick(shopify, {
       type: "variant",
       multiple: true,
       action: "select",
-      selectionIds: gifts.map((g) => ({ id: g.id })),
     });
     if (!picked) return;
     setGifts(
@@ -213,7 +215,6 @@ export default function BundlesPage() {
       type: "variant",
       multiple: true,
       action: "select",
-      selectionIds: choices.map((c) => ({ id: c.id })),
     });
     if (!picked) return;
     setChoices(picked.map((v) => ({ id: v.id, label: variantLabel(v) })));
