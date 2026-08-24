@@ -8,6 +8,9 @@ query CartTransformRun {
           amount
         }
       }
+      bundleChoice: attribute(key: "_bundle_choice") {
+        value
+      }
       merchandise {
         __typename
         ... on ProductVariant {
@@ -24,6 +27,12 @@ query CartTransformRun {
             bundleProductQuantities: metafield(
               namespace: "custom"
               key: "bundle_product_quantities"
+            ) {
+              value
+            }
+            bundleChoiceIds: metafield(
+              namespace: "custom"
+              key: "bundle_choice_ids"
             ) {
               value
             }

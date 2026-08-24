@@ -10,6 +10,13 @@
  * - `custom.bundle_product_quantities` (list.number_integer, optional) is
  *   index-aligned with `bundle_product_ids` and gives the per-parent-unit
  *   quantity of each gift. Missing / shorter list / invalid entries → 1.
+ * - `custom.bundle_choice_ids` (list.variant_reference, optional) is a list
+ *   of variants the customer may pick ONE of (e.g. a free syrup flavour). The
+ *   storefront records the pick in the hidden line attribute `_bundle_choice`;
+ *   when that attribute names a variant from the allow-list it is added to
+ *   the bundle at $0 (one per parent unit). Any other value — including
+ *   "declined" — is ignored, so the attribute alone can never make a random
+ *   variant free.
  * - Every expanded item gets a `fixedPricePerUnit`: the parent keeps its own
  *   presentment price, gifts are 0. Because all components are fixed-priced,
  *   Shopify prices the bundle as the sum of the components, so the machine
@@ -19,6 +26,9 @@
  * @typedef {import("../generated/api").CartTransformRunInput} RunInput
  * @typedef {import("../generated/api").CartTransformRunResult} FunctionRunResult
  */
+
+/** Hidden line attribute that carries the customer's bundle choice. */
+export const CHOICE_ATTRIBUTE = "_bundle_choice";
 
 /** Shopify caps `ExpandedItem.quantity` at 2000. */
 const MAX_EXPANDED_QUANTITY = 2000;
@@ -73,6 +83,30 @@ function fixedPrice(amount) {
 }
 
 /**
+ * Resolve the customer's `_bundle_choice` to a variant id, or null when there
+ * is no (valid) choice. The value must be on the product's allow-list and must
+ * not duplicate the parent or one of the fixed gifts.
+ * @param {RunInput["cart"]["lines"][number]} line
+ * @param {string} parentId
+ * @param {string[]} giftIds
+ * @returns {string | null}
+ */
+function resolveChoice(line, parentId, giftIds) {
+  const chosen = line.bundleChoice?.value?.trim();
+  if (!chosen) return null;
+  /** @type {string[]} */
+  let allowed = [];
+  try {
+    allowed = parseVariantIds(line.merchandise.product.bundleChoiceIds?.value);
+  } catch {
+    return null; // a broken allow-list must not cost the customer the fixed gifts
+  }
+  if (!allowed.includes(chosen)) return null;
+  if (chosen === parentId || giftIds.includes(chosen)) return null;
+  return chosen;
+}
+
+/**
  * Build the expand operation for one cart line, or null if the line is not a
  * bundle parent (or its configuration is unusable).
  * @param {RunInput["cart"]["lines"][number]} line
@@ -85,7 +119,8 @@ function buildExpandOperation(line) {
   const giftIds = parseVariantIds(product.bundleProductIds?.value).filter(
     (id) => id !== merchandise.id
   );
-  if (giftIds.length === 0) return null;
+  const choiceId = resolveChoice(line, merchandise.id, giftIds);
+  if (giftIds.length === 0 && !choiceId) return null;
 
   const giftQuantities = parseQuantities(
     product.bundleProductQuantities?.value,
@@ -111,6 +146,14 @@ function buildExpandOperation(line) {
     expandedCartItems.push({
       merchandiseId: giftIds[i],
       quantity,
+      price: fixedPrice("0.00"),
+    });
+  }
+
+  if (choiceId) {
+    expandedCartItems.push({
+      merchandiseId: choiceId,
+      quantity: Math.min(line.quantity, MAX_EXPANDED_QUANTITY),
       price: fixedPrice("0.00"),
     });
   }

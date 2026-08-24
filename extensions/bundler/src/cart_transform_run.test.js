@@ -4,6 +4,8 @@ import { cartTransformRun as run } from "./cart_transform_run";
 const MACHINE = "gid://shopify/ProductVariant/1001";
 const COFFEE = "gid://shopify/ProductVariant/44345736462370";
 const SCALE = "gid://shopify/ProductVariant/2002";
+const VANILLA = "gid://shopify/ProductVariant/44697343557666";
+const CARAMEL = "gid://shopify/ProductVariant/44697342804002";
 
 function line({
   id = "gid://shopify/CartLine/1",
@@ -11,12 +13,15 @@ function line({
   amount = "1999.00",
   ids,
   quantities,
+  choiceIds,
+  choice,
   typename = "ProductVariant",
 } = {}) {
   return {
     id,
     quantity,
     cost: { amountPerQuantity: { amount } },
+    bundleChoice: choice === undefined ? null : { value: choice },
     merchandise: {
       __typename: typename,
       id: MACHINE,
@@ -26,6 +31,7 @@ function line({
         bundleProductIds: ids === undefined ? null : { value: ids },
         bundleProductQuantities:
           quantities === undefined ? null : { value: quantities },
+        bundleChoiceIds: choiceIds === undefined ? null : { value: choiceIds },
       },
     },
   };
@@ -174,5 +180,105 @@ describe("bundler cart transform", () => {
     });
     const items = result.operations[0].lineExpand.expandedCartItems;
     expect(items.map((i) => i.merchandiseId)).toEqual([MACHINE, COFFEE]);
+  });
+
+  describe("customer choice (_bundle_choice + bundle_choice_ids)", () => {
+    const SYRUPS = JSON.stringify([VANILLA, CARAMEL]);
+
+    it("adds the chosen variant at $0 alongside the fixed gifts", () => {
+      const result = run({
+        cart: {
+          lines: [
+            line({
+              ids: JSON.stringify([COFFEE]),
+              quantities: JSON.stringify([2]),
+              choiceIds: SYRUPS,
+              choice: VANILLA,
+            }),
+          ],
+        },
+      });
+      expect(result.operations[0].lineExpand.expandedCartItems).toEqual([
+        { merchandiseId: MACHINE, quantity: 1, price: fixed("1999.00") },
+        { merchandiseId: COFFEE, quantity: 2, price: fixed("0.00") },
+        { merchandiseId: VANILLA, quantity: 1, price: fixed("0.00") },
+      ]);
+    });
+
+    it("expands a choice-only product (no fixed gifts) once a choice is made", () => {
+      const noChoice = run({ cart: { lines: [line({ choiceIds: SYRUPS })] } });
+      expect(noChoice).toEqual({ operations: [] });
+
+      const chosen = run({
+        cart: { lines: [line({ choiceIds: SYRUPS, choice: CARAMEL })] },
+      });
+      expect(chosen.operations[0].lineExpand.expandedCartItems).toEqual([
+        { merchandiseId: MACHINE, quantity: 1, price: fixed("1999.00") },
+        { merchandiseId: CARAMEL, quantity: 1, price: fixed("0.00") },
+      ]);
+    });
+
+    it("scales the choice with the parent quantity", () => {
+      const result = run({
+        cart: {
+          lines: [line({ quantity: 3, choiceIds: SYRUPS, choice: VANILLA })],
+        },
+      });
+      expect(result.operations[0].lineExpand.expandedCartItems[1]).toEqual({
+        merchandiseId: VANILLA,
+        quantity: 3,
+        price: fixed("0.00"),
+      });
+    });
+
+    it("ignores 'declined', blanks and values not on the allow-list", () => {
+      const gifts = JSON.stringify([COFFEE]);
+      for (const choice of ["declined", "", "  ", SCALE, "gid://shopify/Product/1"]) {
+        const result = run({
+          cart: { lines: [line({ ids: gifts, choiceIds: SYRUPS, choice })] },
+        });
+        const items = result.operations[0].lineExpand.expandedCartItems;
+        expect(items.map((i) => i.merchandiseId)).toEqual([MACHINE, COFFEE]);
+      }
+      // Choice-only product + bad value → not a bundle at all.
+      expect(
+        run({ cart: { lines: [line({ choiceIds: SYRUPS, choice: SCALE })] } })
+      ).toEqual({ operations: [] });
+    });
+
+    it("ignores a choice when the product has no allow-list", () => {
+      const result = run({
+        cart: { lines: [line({ ids: JSON.stringify([COFFEE]), choice: VANILLA })] },
+      });
+      const items = result.operations[0].lineExpand.expandedCartItems;
+      expect(items.map((i) => i.merchandiseId)).toEqual([MACHINE, COFFEE]);
+    });
+
+    it("never duplicates the parent or a fixed gift through the choice", () => {
+      const result = run({
+        cart: {
+          lines: [
+            line({
+              ids: JSON.stringify([COFFEE]),
+              choiceIds: JSON.stringify([COFFEE, MACHINE, VANILLA]),
+              choice: COFFEE,
+            }),
+          ],
+        },
+      });
+      const items = result.operations[0].lineExpand.expandedCartItems;
+      expect(items.map((i) => i.merchandiseId)).toEqual([MACHINE, COFFEE]);
+    });
+
+    it("a malformed allow-list does not break the fixed gifts", () => {
+      const result = run({
+        cart: {
+          lines: [
+            line({ ids: JSON.stringify([COFFEE]), choiceIds: "nope", choice: VANILLA }),
+          ],
+        },
+      });
+      expect(result.operations).toHaveLength(1);
+    });
   });
 });
