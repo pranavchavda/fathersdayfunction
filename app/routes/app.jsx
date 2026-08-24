@@ -5,6 +5,7 @@ import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { authenticate } from "../shopify.server";
+import { CAPABILITIES } from "../lib/capabilities";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
@@ -23,14 +24,11 @@ export default function App() {
         <Link to="/app" rel="home">
           Home
         </Link>
-        <Link to="/app/create-discount">Tiered Discount</Link>
-        <Link to="/app/discount-config">
-          WIP: Configure Max Discount Values
-        </Link>
-        <Link to="/app/create-combo">Tiered Combo Discount</Link>
-        <Link to="/app/createdynamiccombo">Dynamic Combo Discount</Link>
-        <Link to="/app/tiered-coupon">Tiered Coupon</Link>
-        <Link to="/app/capped-discount">Capped Discount</Link>
+        {CAPABILITIES.filter((c) => c.route).map((c) => (
+          <Link key={c.key} to={c.route}>
+            {c.shortTitle}
+          </Link>
+        ))}
       </NavMenu>
       <Outlet />
     </AppProvider>

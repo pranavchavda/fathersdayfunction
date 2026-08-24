@@ -22,6 +22,14 @@ All discount functions check `discount.discountClasses` includes `PRODUCT` and r
 
 Function IDs are stable per extension (production): product-discount `f23d62fa-40f7-49bc-9329-86e1fc269e7e`, dynamic-combo `d5959567-bcf6-433e-9610-4973bd50470b`, tiered-coupon `7ee3f064-c7d5-4371-9bb5-66dd55a24ae7`, capped-discount `e1df1996-03c6-4053-9ba6-49efda23424e`, combo-builder `8afdad2b-981b-4f8c-84db-ebf2bda1c537` (hardcoded in the routes).
 
+## Admin UI structure
+
+- `app/lib/capabilities.js` — the registry of everything the app does (title, summary, how-it-works bullets, kind, functionId/handle, route). The nav (`app/routes/app.jsx`), the dashboard (`app/routes/app._index.jsx`) and every capability page read from it — add/rename capabilities there, not in the pages.
+- `app/lib/discounts.server.js` — `fetchAppDiscounts(admin, {functionId})` lists the app's own discounts (loader-only). `app/lib/admin-urls.js` — client-safe `adminDiscountUrl(shop, id)`.
+- `app/components/CapabilityPage.jsx` — shared page shell (title, "How it works" panel, the page's form, "Discounts using this function" table). `app/components/DiscountsTable.jsx` — IndexTable with status badges.
+- Pages: `app.create-discount` (Tiered Sale), `app.createdynamiccombo` (Dynamic Combo), `app.create-combo` (Combo Builder tiers), `app.tiered-coupon`, `app.capped-discount`, `app.discount-config` (Coupon Value Limit). Bundles/free gifts have no page — they're product metafields.
+- Never import a `*.server.js` module from component code (Remix Vite fails the build with "Server-only module referenced by client").
+
 ## Commands
 
 ```bash
@@ -39,7 +47,7 @@ Always prefix CLI/pnpm commands with `npm_config_dangerously_allow_all_builds=tr
 ## Deploying
 
 - **Functions:** `shopify app deploy` is all-or-nothing across the app's extensions and validates every `api_version` against Shopify's support window (~12 months). Keep all extensions on a supported version or nothing deploys. Verify afterwards with Storefront `cartCreate` checks (line `discountAllocations` / `lineComponents`).
-- **Admin app:** runs on the Linode box `root@139.177.197.236` at `/var/www/html/fathersdayfunction`, pm2 process `shopify-remix-app` (`pnpm start`, port 3000, nginx site `tier-discounts` → https://tier-discount.idrinkcoffee.com). Deploy = `git pull && pnpm install && pnpm exec prisma generate && pnpm exec prisma migrate deploy && pnpm build && pm2 restart shopify-remix-app`. Back up `prisma/dev.sqlite` first — it holds the live offline sessions.
+- **Admin app:** runs on the Linode box `root@139.177.197.236` at `/var/www/html/fathersdayfunction`, pm2 process `shopify-remix-app` (`pnpm start`, port 3000, nginx site `tier-discounts` → https://tier-discount.idrinkcoffee.com). Over SSH, `pnpm` is not on PATH — use `export PATH=/root/.local/share/pnpm:$PATH` (the box runs pnpm 10, so `--frozen-lockfile` may reject the pnpm 11 lockfile; use `--no-frozen-lockfile`). Deploy = `git pull && pnpm install && pnpm exec prisma generate && pnpm exec prisma migrate deploy && pnpm build && pm2 restart shopify-remix-app`. Back up `prisma/dev.sqlite` first — it holds the live offline sessions.
 - `.env` on the server: `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRET`, `SCOPES`, `SHOPIFY_APP_URL`.
 
 ## Gotchas

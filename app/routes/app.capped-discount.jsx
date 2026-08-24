@@ -1,24 +1,49 @@
-// DiscountForm.jsx
-
 import { json } from "@remix-run/node";
-import { useActionData, useFetcher, useSubmit } from "@remix-run/react";
+import { useFetcher, useLoaderData } from "@remix-run/react";
 import {
-  Page,
-  Layout,
-  Card,
-  TextField,
+  Banner,
+  BlockStack,
+  Box,
   Button,
-  FormLayout,
+  Card,
   Checkbox,
+  FormLayout,
+  InlineStack,
+  Link,
+  Tag,
   Text,
+  TextField,
 } from "@shopify/polaris";
-import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
-import { useState } from "react";
+import { useAppBridge } from "@shopify/app-bridge-react";
+import { useEffect, useState } from "react";
 import { authenticate } from "../shopify.server";
+import { CAPABILITY_BY_KEY } from "../lib/capabilities";
+import { adminDiscountUrl } from "../lib/admin-urls";
+import { fetchAppDiscounts } from "../lib/discounts.server";
+import { CapabilityPage } from "../components/CapabilityPage";
+
+const CAPABILITY = CAPABILITY_BY_KEY["capped-coupon"];
+
+/** "YYYY-MM-DDTHH:MM" for a datetime-local input. */
+function toDateTimeLocal(date) {
+  return date.toISOString().slice(0, 16);
+}
 
 export const loader = async ({ request }) => {
-  await authenticate.admin(request);
-  return null;
+  const { admin, session } = await authenticate.admin(request);
+  const discounts = await fetchAppDiscounts(admin, {
+    functionId: CAPABILITY.functionId,
+  });
+  const now = new Date();
+  const inAWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  return json({
+    shop: session.shop,
+    discounts,
+    defaults: {
+      startsAt: toDateTimeLocal(now),
+      endsAt: toDateTimeLocal(inAWeek),
+    },
+  });
 };
 
 export const action = async ({ request }) => {
@@ -34,7 +59,10 @@ export const action = async ({ request }) => {
   const eligibleCollectionIds = JSON.parse(
     formData.get("eligibleCollectionIds") ?? "[]"
   );
-  const usageLimit = formData.get("usageLimit") ?? null; // Add usage limit if needed
+  // Read for parity with the tiered coupon; the mutation below sends
+  // `usageLimit: null` and the form no longer exposes the field.
+  // eslint-disable-next-line no-unused-vars
+  const usageLimit = formData.get("usageLimit") ?? null;
   const appliesOncePerCustomer =
     formData.get("appliesOncePerCustomer") === "true" ? true : false;
   const combinesWithOrderDiscounts =
@@ -44,7 +72,7 @@ export const action = async ({ request }) => {
   const combinesWithShippingDiscounts =
     formData.get("combinesWithShippingDiscounts") === "true" ? true : false;
 
-  // Prepare the discount configuration
+  // Function configuration stored on the discount's metafield
   const discountConfig = {
     percentage_discount: percentageDiscount,
     maximum_discount_amount: maximumDiscountAmount,
@@ -53,7 +81,6 @@ export const action = async ({ request }) => {
 
   const metafieldValue = JSON.stringify(discountConfig);
 
-  // Create the discount code via GraphQL mutation
   const response = await admin.graphql(
     `#graphql
     mutation discountCodeAppCreate($codeAppDiscount: DiscountCodeAppInput!) {
@@ -75,7 +102,7 @@ export const action = async ({ request }) => {
         codeAppDiscount: {
           title,
           code,
-          functionId: "e1df1996-03c6-4053-9ba6-49efda23424e", // Replace with your actual function ID
+          functionId: "e1df1996-03c6-4053-9ba6-49efda23424e",
           discountClasses: ["PRODUCT"],
           startsAt,
           endsAt,
@@ -99,24 +126,72 @@ export const action = async ({ request }) => {
     }
   );
 
-  return json(response);
+  return json(await response.json());
 };
 
-export default function DiscountForm() {
-  const actionData = useActionData();
-  const submit = useSubmit();
-  const app = useAppBridge();
-  const [title, setTitle] = useState("Discount Code");
-  const [code, setCode] = useState("DISCOUNT");
-  const [startsAt, setStartsAt] = useState(
-    new Date().toISOString().split(".")[0]
+function ResultBanner({ data, adminUrlFor, onDismiss }) {
+  if (!data) return null;
+  const payload = data.data?.discountCodeAppCreate;
+  const created = payload?.codeAppDiscount;
+  const userErrors = payload?.userErrors || [];
+  const graphqlErrors = data.errors || [];
+
+  if (created?.discountId) {
+    return (
+      <Banner
+        title={`Created "${created.title}"`}
+        tone="success"
+        onDismiss={onDismiss}
+      >
+        <p>
+          Status: {created.status}.{" "}
+          <Link url={adminUrlFor(created.discountId)} target="_blank">
+            Open in Discounts
+          </Link>
+        </p>
+      </Banner>
+    );
+  }
+
+  const messages = [
+    ...userErrors.map((e) =>
+      e.field ? `${[].concat(e.field).join(".")}: ${e.message}` : e.message
+    ),
+    ...graphqlErrors.map((e) => e.message),
+  ];
+  return (
+    <Banner
+      title="The discount code was not created"
+      tone="critical"
+      onDismiss={onDismiss}
+    >
+      {messages.length > 0 ? (
+        <ul>
+          {messages.map((m) => (
+            <li key={m}>{m}</li>
+          ))}
+        </ul>
+      ) : (
+        <p>Shopify returned no discount and no error details.</p>
+      )}
+    </Banner>
   );
-  const [endsAt, setEndsAt] = useState("");
+}
+
+export default function CappedCouponPage() {
+  const { shop, discounts, defaults } = useLoaderData();
+  const fetcher = useFetcher();
+  const app = useAppBridge();
+  const adminUrlFor = (id) => adminDiscountUrl(shop, id);
+
+  const [title, setTitle] = useState("");
+  const [code, setCode] = useState("");
+  const [startsAt, setStartsAt] = useState(defaults.startsAt);
+  const [endsAt, setEndsAt] = useState(defaults.endsAt);
   const [percentageDiscount, setPercentageDiscount] = useState("10");
   const [maximumDiscountAmount, setMaximumDiscountAmount] = useState("200");
-  const [eligibleCollections, setEligibleCollections] = useState([]);
-  const [selectedCollectionNames, setSelectedCollectionNames] = useState([]);
-  const [usageLimit, setUsageLimit] = useState("");
+  // [{ id: "gid://shopify/Collection/…", title }]
+  const [collections, setCollections] = useState([]);
   const [appliesOncePerCustomer, setAppliesOncePerCustomer] = useState(false);
   const [combinesWithOrderDiscounts, setCombinesWithOrderDiscounts] =
     useState(true);
@@ -124,209 +199,290 @@ export default function DiscountForm() {
     useState(true);
   const [combinesWithShippingDiscounts, setCombinesWithShippingDiscounts] =
     useState(true);
+  const [pickerError, setPickerError] = useState(null);
+  const [showResult, setShowResult] = useState(false);
+
+  const isSubmitting = fetcher.state !== "idle";
+  const createdId = fetcher.data?.data?.discountCodeAppCreate?.codeAppDiscount
+    ?.discountId;
+
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data) {
+      setShowResult(true);
+      if (createdId) app.toast.show("Discount code created");
+    }
+  }, [fetcher.state, fetcher.data, createdId, app]);
+
   const handleOpenPicker = async () => {
+    setPickerError(null);
     try {
       const selected = await app.resourcePicker({
         type: "collection",
         multiple: true,
-        initialSelectionIds: eligibleCollections, // Preselect if any
-        selectionIds: eligibleCollections,
+        selectionIds: collections.map((c) => ({ id: c.id })),
         filters: {
-          // Optional: Add filters or other options here
           query: "",
         },
       });
 
-      if (selected.action === "cancel") {
-        // User canceled the picker
+      // App Bridge v4 resolves `undefined` when the picker is cancelled and
+      // otherwise resolves the selection array (`.selection` is a deprecated
+      // alias of the same array).
+      if (!selected) {
         return;
       }
+      const selection = Array.isArray(selected)
+        ? selected
+        : selected.selection || [];
 
-      const selectedIds = selected.selection.map(
-        (collection) =>
-          `gid://shopify/Collection/${collection.id.split("/").pop()}`
-      );
-      const selectedNames = selected.selection.map(
-        (collection) => collection.title
-      );
-
-      setEligibleCollections(selectedIds);
-      setSelectedCollectionNames(selectedNames);
+      const picked = selection.map((collection) => ({
+        id: `gid://shopify/Collection/${collection.id.split("/").pop()}`,
+        title: collection.title,
+      }));
+      setCollections(picked);
     } catch (error) {
-      console.error("Error selecting collections:", error);
+      setPickerError(
+        error?.message || "The collection picker could not be opened."
+      );
     }
   };
+
+  const removeCollection = (id) =>
+    setCollections((current) => current.filter((c) => c.id !== id));
+
+  const percentageNumber = Number(percentageDiscount);
+  const capNumber = Number(maximumDiscountAmount);
+  const percentageProblem =
+    !percentageDiscount ||
+    !Number.isFinite(percentageNumber) ||
+    percentageNumber <= 0 ||
+    percentageNumber > 100
+      ? "Enter a percentage between 0 and 100."
+      : null;
+  const capProblem =
+    !maximumDiscountAmount || !Number.isFinite(capNumber) || capNumber <= 0
+      ? "Enter an amount greater than 0."
+      : null;
+  const dateProblem =
+    startsAt && endsAt && endsAt <= startsAt
+      ? "The end date must be after the start date."
+      : null;
+
+  const canSubmit =
+    !isSubmitting &&
+    title.trim().length > 0 &&
+    code.trim().length > 0 &&
+    !!startsAt &&
+    !dateProblem &&
+    !percentageProblem &&
+    !capProblem &&
+    collections.length > 0;
 
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     formData.append(
       "eligibleCollectionIds",
-      JSON.stringify(eligibleCollections)
+      JSON.stringify(collections.map((c) => c.id))
     );
-    submit(formData, { method: "post" });
-    app.toast.show("Code added (check discounts tab to confirm)");
+    // The action treats a missing end date as "no end date"; an empty string
+    // would be sent to Shopify as an invalid DateTime.
+    if (!formData.get("endsAt")) formData.delete("endsAt");
+    fetcher.submit(formData, { method: "post" });
   };
 
-  const fetcher = useFetcher();
+  const cadOrUsd = (n) =>
+    Number.isFinite(n) ? `$${n.toLocaleString("en-CA")}` : "";
+  const breakEven =
+    !percentageProblem && !capProblem
+      ? (capNumber / percentageNumber) * 100
+      : null;
 
   return (
-    <Page>
-      <TitleBar title="Create Discount Code" />
-      <Layout>
-        <Layout.Section>
-          <Card sectioned>
-            <form onSubmit={handleSubmit}>
-              <FormLayout>
+    <CapabilityPage
+      capabilityKey="capped-coupon"
+      discounts={discounts}
+      adminUrlFor={adminUrlFor}
+    >
+      <BlockStack gap="400">
+        {showResult && (
+          <ResultBanner
+            data={fetcher.data}
+            adminUrlFor={adminUrlFor}
+            onDismiss={() => setShowResult(false)}
+          />
+        )}
+        <Card>
+          <form onSubmit={handleSubmit}>
+            <FormLayout>
+              <Text as="h2" variant="headingMd">
+                New capped coupon
+              </Text>
+
+              <FormLayout.Group>
                 <TextField
                   label="Title"
                   name="title"
+                  autoComplete="off"
                   value={title}
-                  onChange={(value) => setTitle(value)}
+                  onChange={setTitle}
+                  placeholder="Accessories 15% off, max $50"
+                  helpText="Internal name shown in the Discounts list."
+                  requiredIndicator
                 />
                 <TextField
-                  label="Discount Code"
+                  label="Discount code"
                   name="code"
+                  autoComplete="off"
                   value={code}
-                  onChange={(value) => setCode(value)}
+                  onChange={(value) => setCode(value.toUpperCase())}
+                  placeholder="ACCESSORIES15"
+                  helpText="What customers type at checkout."
+                  monospaced
+                  requiredIndicator
                 />
+              </FormLayout.Group>
+
+              <FormLayout.Group>
                 <TextField
-                  label="Percentage Discount"
+                  label="Percentage off"
                   name="percentageDiscount"
                   type="number"
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  suffix="%"
+                  autoComplete="off"
                   value={percentageDiscount}
-                  onChange={(value) => setPercentageDiscount(value)}
+                  onChange={setPercentageDiscount}
+                  error={percentageProblem || undefined}
+                  requiredIndicator
                 />
                 <TextField
-                  label="Maximum Discount Amount"
+                  label="Maximum discount"
                   name="maximumDiscountAmount"
                   type="number"
+                  min={0}
+                  step={1}
+                  prefix="$"
+                  autoComplete="off"
                   value={maximumDiscountAmount}
-                  onChange={(value) => setMaximumDiscountAmount(value)}
-                  helpText="The maximum total discount amount in the store's currency."
+                  onChange={setMaximumDiscountAmount}
+                  helpText={
+                    breakEven
+                      ? `Store currency, per order. The cap kicks in once eligible items total more than ${cadOrUsd(Math.round(breakEven))}.`
+                      : "Store currency, per order."
+                  }
+                  error={capProblem || undefined}
+                  requiredIndicator
                 />
-                <Button onClick={handleOpenPicker} primary>
-                  Select Eligible Collections
-                </Button>
+              </FormLayout.Group>
+
+              <BlockStack gap="200">
+                <InlineStack align="space-between" blockAlign="center">
+                  <Text as="h3" variant="headingSm">
+                    Eligible collections
+                  </Text>
+                  <Button onClick={handleOpenPicker}>
+                    {collections.length > 0
+                      ? "Change collections"
+                      : "Select collections"}
+                  </Button>
+                </InlineStack>
+                {collections.length > 0 ? (
+                  <InlineStack gap="200" wrap>
+                    {collections.map((c) => (
+                      <Tag key={c.id} onRemove={() => removeCollection(c.id)}>
+                        {c.title}
+                      </Tag>
+                    ))}
+                  </InlineStack>
+                ) : (
+                  <Text as="p" variant="bodySm" tone="subdued">
+                    Only products in the selected collections are discounted.
+                    Pick at least one.
+                  </Text>
+                )}
+                {pickerError && (
+                  <Text as="p" variant="bodySm" tone="critical">
+                    {pickerError}
+                  </Text>
+                )}
+              </BlockStack>
+
+              <FormLayout.Group>
                 <TextField
-                  label="Selected Collections"
-                  value={selectedCollectionNames.join(", ")}
-                  disabled
-                  multiline
-                />
-                <TextField
-                  label="Start Date"
+                  label="Starts"
                   name="startsAt"
                   type="datetime-local"
-                  requiredIndicator
+                  autoComplete="off"
                   value={startsAt}
-                  onChange={(value) => setStartsAt(value)}
-                />
-                <TextField
-                  label="End Date"
-                  name="endsAt"
+                  onChange={setStartsAt}
                   requiredIndicator
-                  type="datetime-local"
-                  value={endsAt}
-                  onChange={(value) => setEndsAt(value)}
-                  helpText="Leave blank for no end date"
                 />
                 <TextField
-                  label="Usage Limit"
-                  name="usageLimit"
-                  type="number"
-                  value={usageLimit}
-                  onChange={(value) => setUsageLimit(value)}
-                  helpText="Optional. Maximum number of times this discount code can be used."
+                  label="Ends"
+                  name="endsAt"
+                  type="datetime-local"
+                  autoComplete="off"
+                  value={endsAt}
+                  onChange={setEndsAt}
+                  helpText="Clear this to leave the code open-ended."
+                  error={dateProblem || undefined}
                 />
-                <FormLayout.Group>
-                  <Checkbox
-                    label="Applies Once Per Customer"
-                    checked={appliesOncePerCustomer}
-                    onChange={(value) => setAppliesOncePerCustomer(value)}
-                    name="appliesOncePerCustomer"
-                  />
-                </FormLayout.Group>
-                <FormLayout.Group title="Combines With">
-                  <Checkbox
-                    label="Order Discounts"
-                    checked={combinesWithOrderDiscounts}
-                    onChange={(value) => setCombinesWithOrderDiscounts(value)}
-                    name="combinesWithOrderDiscounts"
-                  />
-                  <Checkbox
-                    label="Product Discounts"
-                    checked={combinesWithProductDiscounts}
-                    onChange={(value) => setCombinesWithProductDiscounts(value)}
-                    name="combinesWithProductDiscounts"
-                  />
-                  <Checkbox
-                    label="Shipping Discounts"
-                    checked={combinesWithShippingDiscounts}
-                    onChange={(value) =>
-                      setCombinesWithShippingDiscounts(value)
-                    }
-                    name="combinesWithShippingDiscounts"
-                  />
-                </FormLayout.Group>
-                <Button submit primary>
-                  Create Discount Code
-                </Button>
-              </FormLayout>
-            </form>
-          </Card>
-        </Layout.Section>
-        <Layout.Section secondary>
-          <Card sectioned>
-            <Text variant="headingMd">Instructions</Text>
-            <Text variant="bodyMd">
-              - **Eligible Collections**: Click the button to select collections
-              that are eligible for this discount.
-            </Text>
-            <Text variant="bodyMd">
-              - **Percentage Discount**: Enter the percentage discount to apply
-              to eligible products.
-            </Text>
-            <Text variant="bodyMd">
-              - **Maximum Discount Amount**: Set the maximum total discount
-              amount that can be applied per order.
-            </Text>
-            <Text variant="bodyMd">
-              - **Note**: You can find collection IDs in the Shopify Admin URL
-              when viewing a collection.
-            </Text>
-          </Card>
-        </Layout.Section>
+              </FormLayout.Group>
 
-        {/*Below, we'll show a list of disocunt codes that belong to this app */}
-        <Layout.Section>
-          <Card sectioned>
-            <Text variant="headingMd" as="h2">
-              Active Discount Codes
-            </Text>
-            {actionData?.data?.discountCodeAppCreate?.codeAppDiscount && (
-              <div style={{ marginTop: "1rem" }}>
-                <Text variant="bodyMd" as="p" color="success">
-                  Successfully created discount code:{" "}
-                  {
-                    actionData.data.discountCodeAppCreate.codeAppDiscount.codes
-                      .nodes[0].code
-                  }
+              <Checkbox
+                label="Limit to one use per customer"
+                name="appliesOncePerCustomer"
+                value="true"
+                checked={appliesOncePerCustomer}
+                onChange={setAppliesOncePerCustomer}
+              />
+
+              <BlockStack gap="200">
+                <Text as="h3" variant="headingSm">
+                  Combines with
                 </Text>
-              </div>
-            )}
-            {actionData?.data?.discountCodeAppCreate?.userErrors?.length >
-              0 && (
-              <div style={{ marginTop: "1rem" }}>
-                <Text variant="bodyMd" as="p" color="critical">
-                  Error creating discount code:{" "}
-                  {actionData.data.discountCodeAppCreate.userErrors[0].message}
-                </Text>
-              </div>
-            )}
-          </Card>
-        </Layout.Section>
-      </Layout>
-    </Page>
+                <InlineStack gap="400" wrap>
+                  <Checkbox
+                    label="Order discounts"
+                    name="combinesWithOrderDiscounts"
+                    value="true"
+                    checked={combinesWithOrderDiscounts}
+                    onChange={setCombinesWithOrderDiscounts}
+                  />
+                  <Checkbox
+                    label="Product discounts"
+                    name="combinesWithProductDiscounts"
+                    value="true"
+                    checked={combinesWithProductDiscounts}
+                    onChange={setCombinesWithProductDiscounts}
+                  />
+                  <Checkbox
+                    label="Shipping discounts"
+                    name="combinesWithShippingDiscounts"
+                    value="true"
+                    checked={combinesWithShippingDiscounts}
+                    onChange={setCombinesWithShippingDiscounts}
+                  />
+                </InlineStack>
+              </BlockStack>
+
+              <Box>
+                <Button
+                  variant="primary"
+                  submit
+                  loading={isSubmitting}
+                  disabled={!canSubmit}
+                >
+                  Create discount code
+                </Button>
+              </Box>
+            </FormLayout>
+          </form>
+        </Card>
+      </BlockStack>
+    </CapabilityPage>
   );
 }
