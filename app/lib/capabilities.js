@@ -124,21 +124,21 @@ export const CAPABILITIES = [
     key: "bundles",
     title: "Bundles & free gifts",
     shortTitle: "Bundles",
-    route: null,
+    route: "/app/bundles",
     kind: "cart-transform",
     functionId: null,
     functionHandle: "bundler",
     summary:
-      "Always on. A product that lists other variants in its bundle_product_ids metafield is expanded in the cart into the product plus those items at $0.",
+      "Always on. A product with bundle metafields is expanded in the cart into the product plus its free items at $0 — optionally with one item the customer picks (e.g. a syrup flavour).",
     howItWorks: [
-      "On the parent product set custom.bundle_product_ids (variants) and, optionally, custom.bundle_product_quantities (index-aligned quantities, default 1).",
-      "The parent keeps its full price; every bundled item is priced at $0 in cart, checkout and the order.",
-      "Quantities scale with the parent line (2 machines → 4 bags).",
-      "Nothing to create here — edit the product metafields in the product admin.",
+      "Free items: custom.bundle_product_ids (variants) + custom.bundle_product_quantities (index-aligned, default 1) are always added.",
+      "Customer choice: custom.bundle_choice_ids lists variants the shopper may pick ONE of; the storefront cart shows a picker and stores the pick in the hidden line attribute _bundle_choice.",
+      "The parent keeps its full price; every bundled item is priced at $0 in cart, checkout and the order. Quantities scale with the parent line.",
+      "Use the form on this page to apply one configuration to many products at once; it also tags them bundle-parent so they show up in the list below.",
     ],
     configSource:
-      "Product metafields custom.bundle_product_ids and custom.bundle_product_quantities.",
-    examples: ["2 × Essential Espresso with a machine", "Jura E8 milk accessories"],
+      "Product metafields custom.bundle_product_ids, custom.bundle_product_quantities, custom.bundle_choice_ids (+ tag bundle-parent).",
+    examples: ["2 × Essential Espresso + free Sweetbird syrup with a machine", "Jura E8 milk accessories"],
   },
 ];
 
