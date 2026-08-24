@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { run } from "./run";
+import { cartTransformRun as run } from "./cart_transform_run";
 
 const MACHINE = "gid://shopify/ProductVariant/1001";
 const COFFEE = "gid://shopify/ProductVariant/44345736462370";
@@ -62,7 +62,7 @@ describe("bundler cart transform", () => {
     expect(result).toEqual({
       operations: [
         {
-          expand: {
+          lineExpand: {
             cartLineId: "gid://shopify/CartLine/1",
             title: "Test Machine Bundle",
             expandedCartItems: [
@@ -84,7 +84,7 @@ describe("bundler cart transform", () => {
         ],
       },
     });
-    expect(result.operations[0].expand.expandedCartItems).toEqual([
+    expect(result.operations[0].lineExpand.expandedCartItems).toEqual([
       { merchandiseId: MACHINE, quantity: 1, price: fixed("1999.00") },
       { merchandiseId: COFFEE, quantity: 2, price: fixed("0.00") },
     ]);
@@ -101,7 +101,7 @@ describe("bundler cart transform", () => {
         ],
       },
     });
-    const items = result.operations[0].expand.expandedCartItems;
+    const items = result.operations[0].lineExpand.expandedCartItems;
     expect(items[1].quantity).toBe(2);
     expect(items[2].quantity).toBe(1);
   });
@@ -117,7 +117,7 @@ describe("bundler cart transform", () => {
         ],
       },
     });
-    const items = result.operations[0].expand.expandedCartItems;
+    const items = result.operations[0].lineExpand.expandedCartItems;
     expect(items[1].quantity).toBe(1);
     expect(items[2].quantity).toBe(1);
   });
@@ -134,7 +134,7 @@ describe("bundler cart transform", () => {
         ],
       },
     });
-    expect(result.operations[0].expand.expandedCartItems).toEqual([
+    expect(result.operations[0].lineExpand.expandedCartItems).toEqual([
       { merchandiseId: MACHINE, quantity: 2, price: fixed("1999.00") },
       { merchandiseId: COFFEE, quantity: 4, price: fixed("0.00") },
     ]);
@@ -144,7 +144,7 @@ describe("bundler cart transform", () => {
     const result = run({
       cart: { lines: [line({ amount: "1450.5", ids: JSON.stringify([COFFEE]) })] },
     });
-    expect(result.operations[0].expand.expandedCartItems[0].price).toEqual(
+    expect(result.operations[0].lineExpand.expandedCartItems[0].price).toEqual(
       fixed("1450.5")
     );
   });
@@ -159,7 +159,7 @@ describe("bundler cart transform", () => {
       },
     });
     expect(result.operations).toHaveLength(1);
-    expect(result.operations[0].expand.cartLineId).toBe("gid://shopify/CartLine/ok");
+    expect(result.operations[0].lineExpand.cartLineId).toBe("gid://shopify/CartLine/ok");
   });
 
   it("drops a gift id that points at the parent itself and non-variant ids", () => {
@@ -172,7 +172,7 @@ describe("bundler cart transform", () => {
         ],
       },
     });
-    const items = result.operations[0].expand.expandedCartItems;
+    const items = result.operations[0].lineExpand.expandedCartItems;
     expect(items.map((i) => i.merchandiseId)).toEqual([MACHINE, COFFEE]);
   });
 });

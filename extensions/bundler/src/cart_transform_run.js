@@ -16,8 +16,8 @@
  *   shows at full price and the gifts show as $0 in cart, checkout and the
  *   order (instead of prorating the parent price across the components).
  *
- * @typedef {import("../generated/api").RunInput} RunInput
- * @typedef {import("../generated/api").FunctionRunResult} FunctionRunResult
+ * @typedef {import("../generated/api").CartTransformRunInput} RunInput
+ * @typedef {import("../generated/api").CartTransformRunResult} FunctionRunResult
  */
 
 /** Shopify caps `ExpandedItem.quantity` at 2000. */
@@ -116,7 +116,7 @@ function buildExpandOperation(line) {
   }
 
   return {
-    expand: {
+    lineExpand: {
       cartLineId: line.id,
       title: `${product.title} Bundle`,
       expandedCartItems,
@@ -128,7 +128,7 @@ function buildExpandOperation(line) {
  * @param {RunInput} input
  * @returns {FunctionRunResult}
  */
-export function run(input) {
+export function cartTransformRun(input) {
   const lines = input?.cart?.lines;
   if (!Array.isArray(lines) || lines.length === 0) return NO_CHANGES;
 

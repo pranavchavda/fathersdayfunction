@@ -1,0 +1,32 @@
+query CartLinesDiscountsGenerateRun {
+  cart {
+    lines {
+      id
+      quantity
+      cost {
+        subtotalAmount {
+          amount
+          currencyCode
+        }
+      }
+      merchandise {
+        __typename
+        ... on ProductVariant {
+          id
+          product {
+            id
+            hasMachineTag: hasAnyTag(tags: ["combo-builder-machine"])
+            hasGrinderTag: hasAnyTag(tags: ["combo-builder-grinder"])
+            hasOpenboxTag: hasAnyTag(tags: ["openbox"])
+          }
+        }
+      }
+    }
+  }
+  discount {
+    discountClasses
+    metafield(namespace: "combo-discount", key: "function-configuration") {
+      value
+    }
+  }
+}

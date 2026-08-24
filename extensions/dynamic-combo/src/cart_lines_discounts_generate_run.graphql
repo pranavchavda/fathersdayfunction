@@ -1,6 +1,7 @@
-query Input {
+query CartLinesDiscountsGenerateRun {
   cart {
     lines {
+      id
       quantity
       cost {
         subtotalAmount {
@@ -27,11 +28,8 @@ query Input {
         }
       }
     }
-    cost {
-      subtotalAmount {
-        amount
-        currencyCode
-      }
-    }
+  }
+  discount {
+    discountClasses
   }
 }

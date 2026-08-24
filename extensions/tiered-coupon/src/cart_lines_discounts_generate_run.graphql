@@ -1,10 +1,14 @@
-# run.graphql
-
-query Input {
+query CartLinesDiscountsGenerateRun {
   cart {
     lines {
       id
       quantity
+      cost {
+        totalAmount {
+          amount
+          currencyCode
+        }
+      }
       merchandise {
         __typename
         ... on ProductVariant {
@@ -20,15 +24,10 @@ query Input {
           }
         }
       }
-      cost {
-        totalAmount {
-          amount
-          currencyCode
-        }
-      }
     }
   }
-  discountNode {
+  discount {
+    discountClasses
     metafield(namespace: "discount_code", key: "function_configuration") {
       value
     }

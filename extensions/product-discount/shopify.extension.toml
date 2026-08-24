@@ -8,9 +8,9 @@ description = "t:description"
 type = "function"
 
   [[extensions.targeting]]
-  target = "purchase.product-discount.run"
-  input_query = "src/run.graphql"
-  export = "run"
+  target = "cart.lines.discounts.generate.run"
+  input_query = "src/cart_lines_discounts_generate_run.graphql"
+  export = "cart-lines-discounts-generate-run"
 
   [extensions.build]
   command = ""

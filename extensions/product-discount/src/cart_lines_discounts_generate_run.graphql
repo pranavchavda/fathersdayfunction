@@ -1,6 +1,10 @@
-query RunInput($excludedTags: [String!], $fullExclusions: [String!]) {
+query CartLinesDiscountsGenerateRun(
+  $excludedTags: [String!]
+  $fullExclusions: [String!]
+) {
   cart {
     lines {
+      id
       quantity
       cost {
         amountPerQuantity {
@@ -30,7 +34,8 @@ query RunInput($excludedTags: [String!], $fullExclusions: [String!]) {
       }
     }
   }
-  discountNode {
+  discount {
+    discountClasses
     metafield(namespace: "product-discount", key: "function-configuration") {
       value
     }

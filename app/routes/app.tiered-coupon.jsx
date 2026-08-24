@@ -50,6 +50,7 @@ export const action = async ({ request }) => {
     startsAt,
     endsAt,
     functionId: "7ee3f064-c7d5-4371-9bb5-66dd55a24ae7", // Replace with your actual function ID
+    discountClasses: ["PRODUCT"],
     appliesOncePerCustomer,
     combinesWith: {
       orderDiscounts: combinesWithOrderDiscounts,

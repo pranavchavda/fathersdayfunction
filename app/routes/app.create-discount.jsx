@@ -171,6 +171,8 @@ export const action = async ({ request }) => {
         startsAt: $startDate
         metafields: {namespace: "product-discount", key: "function-configuration", value: $metaFieldValue, type: "json"}
         endsAt: $endDate
+        discountClasses: [PRODUCT]
+        combinesWith: {orderDiscounts: false, productDiscounts: false, shippingDiscounts: false}
       }) {
         automaticAppDiscount {
           discountId
@@ -349,6 +351,8 @@ export default function Index() {
                               startsAt: "${startDate}",
                               metafields: {namespace: "product-discount", key: "function-configuration", value: ${metaFieldValue}, type: "json"},
                               endsAt: "${endDate}",
+                              discountClasses: [PRODUCT],
+                              combinesWith: {orderDiscounts: false, productDiscounts: false, shippingDiscounts: false},
                             }) {
                               automaticAppDiscount {
                                 discountId

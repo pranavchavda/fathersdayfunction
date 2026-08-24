@@ -9,9 +9,9 @@ type = "function"
 description = "t:description"
 
   [[extensions.targeting]]
-  target = "purchase.cart-transform.run"
-  input_query = "src/run.graphql"
-  export = "run"
+  target = "cart.transform.run"
+  input_query = "src/cart_transform_run.graphql"
+  export = "cart-transform-run"
 
   [extensions.build]
   command = ""

@@ -76,6 +76,7 @@ export const action = async ({ request }) => {
           title,
           code,
           functionId: "e1df1996-03c6-4053-9ba6-49efda23424e", // Replace with your actual function ID
+          discountClasses: ["PRODUCT"],
           startsAt,
           endsAt,
           appliesOncePerCustomer: appliesOncePerCustomer,

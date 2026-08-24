@@ -49,6 +49,10 @@ export default defineConfig({
       ignoredRouteFiles: ["**/.*"],
       future: {
         v3_fetcherPersist: true,
+        v3_relativeSplatPath: true,
+        v3_throwAbortReason: true,
+        v3_lazyRouteDiscovery: true,
+        v3_singleFetch: false,
       },
     }),
     tsconfigPaths(),
@@ -57,16 +61,6 @@ export default defineConfig({
     assetsInlineLimit: 0,
   },
   optimizeDeps: {
-    include: [
-      "cliui",
-      "chalk",
-      "supports-color",
-      "strip-ansi",
-      "string-width",
-      "string-width",
-      "strip-ansi",
-      "ansi-regex",
-      "ansi-styles",
-    ],
+    include: ["@shopify/app-bridge-react", "@shopify/polaris"],
   },
 });

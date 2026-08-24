@@ -45,7 +45,9 @@ export const action = async ({ request }) => {
             title: $title,
             functionId: "d5959567-bcf6-433e-9610-4973bd50470b",
             startsAt: $startDate,
-            endsAt: $endDate
+            endsAt: $endDate,
+            discountClasses: [PRODUCT],
+            combinesWith: {orderDiscounts: false, productDiscounts: false, shippingDiscounts: false}
           }
         ) {
           automaticAppDiscount {

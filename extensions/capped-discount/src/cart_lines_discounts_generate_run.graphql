@@ -1,4 +1,4 @@
-query RunInput($eligibleCollectionIds: [ID!]!) {
+query CartLinesDiscountsGenerateRun($eligibleCollectionIds: [ID!]!) {
   cart {
     lines {
       id
@@ -27,7 +27,8 @@ query RunInput($eligibleCollectionIds: [ID!]!) {
       }
     }
   }
-  discountNode {
+  discount {
+    discountClasses
     metafield(namespace: "discount_code", key: "function_configuration") {
       value
     }

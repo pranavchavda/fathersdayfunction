@@ -91,8 +91,8 @@ export const action = async ({ request }) => {
                 startsAt: $startDate,
                 endsAt: $endDate,
                 metafields: {namespace: "combo-discount", key: "function-configuration", value: $metaFieldValue, type: "json"},
-
-
+                discountClasses: [PRODUCT],
+                combinesWith: {orderDiscounts: false, productDiscounts: false, shippingDiscounts: false}
             }) {
 
                 automaticAppDiscount {
