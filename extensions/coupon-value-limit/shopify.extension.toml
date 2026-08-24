@@ -3,6 +3,7 @@ api_version = "unstable"
 [[extensions]]
 name = "t:name"
 handle = "coupon-value-limit"
+uid = "9152b29f-02f7-c1e7-9cd6-1d7c213ce79fb771e37a"
 type = "function"
 
 description = "t:description"

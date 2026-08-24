@@ -1,8 +1,9 @@
-api_version = "2024-07"
+api_version = "2026-01"
 
 [[extensions]]
 name = "t:name"
 handle = "combo-builder"
+uid = "424d0ac3-259e-d7b0-daab-fcac4847e339ba1caa36"
 type = "function"
 
 description = "t:description"

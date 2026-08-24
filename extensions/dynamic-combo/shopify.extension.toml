@@ -1,8 +1,9 @@
-api_version = "2024-10"
+api_version = "2026-01"
 
 [[extensions]]
 name = "t:name"
 handle = "dynamic-combo"
+uid = "ae2dfd6a-86af-7b28-7e34-3328e055a840256bf1dd"
 type = "function"
 
 description = "t:description"

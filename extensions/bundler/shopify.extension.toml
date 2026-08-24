@@ -1,8 +1,9 @@
-api_version = "2024-07"
+api_version = "2026-01"
 
 [[extensions]]
 name = "t:name"
 handle = "bundler"
+uid = "a5351d30-e2eb-5068-e530-bbe4d13698bd1d290638"
 type = "function"
 
 description = "t:description"

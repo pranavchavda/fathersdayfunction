@@ -1,7 +1,8 @@
-api_version = "2024-07"
+api_version = "2026-01"
 
 [[extensions]]
 handle = "product-discount-js"
+uid = "fa81b4ed-bcec-5f88-a70b-86526fcc8d6c876cc78a"
 name = "t:name"
 description = "t:description"
 type = "function"

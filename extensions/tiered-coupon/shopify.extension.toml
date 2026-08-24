@@ -1,8 +1,9 @@
-api_version = "2024-10"
+api_version = "2026-01"
 
 [[extensions]]
 name = "t:name"
 handle = "tiered-coupon"
+uid = "eaf9de36-81c8-5409-b414-5090743f6b9e5c79d965"
 type = "function"
 
 description = "t:description"
