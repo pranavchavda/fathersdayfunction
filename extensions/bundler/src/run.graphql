@@ -3,6 +3,11 @@ query RunInput {
     lines {
       id
       quantity
+      cost {
+        amountPerQuantity {
+          amount
+        }
+      }
       merchandise {
         __typename
         ... on ProductVariant {
@@ -10,7 +15,16 @@ query RunInput {
           product {
             id
             title
-            metafield(namespace: "custom", key: "bundle_product_ids") {
+            bundleProductIds: metafield(
+              namespace: "custom"
+              key: "bundle_product_ids"
+            ) {
+              value
+            }
+            bundleProductQuantities: metafield(
+              namespace: "custom"
+              key: "bundle_product_quantities"
+            ) {
               value
             }
           }
