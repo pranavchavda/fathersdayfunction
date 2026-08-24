@@ -1,3 +1,5 @@
+import { CAPABILITY_BY_FUNCTION_ID } from "./capabilities";
+
 /**
  * Read the app's own discounts (automatic + code) with the function that backs
  * each. Used by the dashboard and by every capability page.
@@ -55,6 +57,9 @@ export async function fetchAppDiscounts(admin, opts = {}) {
     for (const node of connection.nodes) {
       const d = node.discount;
       if (!d?.appDiscountType) continue;
+      // `type:app` returns every app's discounts on the store; keep only the
+      // ones backed by one of THIS app's functions.
+      if (!CAPABILITY_BY_FUNCTION_ID[d.appDiscountType.functionId]) continue;
       if (opts.functionId && d.appDiscountType.functionId !== opts.functionId) continue;
       results.push({
         id: node.id,
