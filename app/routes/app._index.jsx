@@ -29,7 +29,6 @@ const KIND_TONE = {
   automatic: "info",
   code: "magic",
   "cart-transform": "success",
-  allocator: undefined,
 };
 
 function CapabilityCard({ capability, discounts }) {
@@ -70,7 +69,7 @@ function CapabilityCard({ capability, discounts }) {
         <Box>
           {capability.route ? (
             <Button url={capability.route} variant="primary">
-              {capability.kind === "allocator" ? "Configure" : "Create"}
+              {capability.kind === "cart-transform" ? "Configure" : "Create"}
             </Button>
           ) : (
             <Button url="shopify://admin/products" target="_top">

@@ -1,7 +1,7 @@
 # CLAUDE.md — iDrinkCoffee Functions
 
 Shopify app **"iDrinkCoffee Functions"** (handle `tiered-discounts-idc`, client_id `5b89e0a11165b3550c6a323daad996f1`).
-Embedded admin UI (Remix) + seven Shopify Functions used by idrinkcoffee.com.
+Embedded admin UI (Remix) + six Shopify Functions used by idrinkcoffee.com.
 Despite the repo name, this is the general-purpose functions app, not just Father's Day.
 
 **Stack:** Remix 2.17 · React 18 · Polaris 13 · @shopify/shopify-app-remix 3.8 (Admin API 2025-10) · Prisma 6 (SQLite sessions) · Shopify Functions in JS (javy) on API **2026-01** · pnpm 11 · @shopify/cli 4.
@@ -16,7 +16,6 @@ Despite the repo name, this is the general-purpose functions app, not just Fathe
 | `combo-builder` | same | tags as above + discount metafield `combo-discount.function-configuration` (tier list, legacy nested shape). Backs the Hydrogen combo builder (currently decommissioned). | Route `app/create-combo`. |
 | `tiered-coupon` | same | code discount; per-product `custom.discount_percentage` (number_integer = % off). | Route `app/tiered-coupon`. |
 | `capped-discount` | same | code discount; metafield `discount_code.function_configuration` `{percentage_discount, maximum_discount_amount, eligibleCollectionIds}`; input-query variables from it. | Route `app/capped-discount`. |
-| `coupon-value-limit` | `purchase.discounts-allocator.run` (**unstable**) | shop metafield `custom_discount_allocator.config`. The Discounts Allocator API is dev-preview only; there is no stable version. Kept as-is. | Route `app/discount-config`. |
 
 All discount functions check `discount.discountClasses` includes `PRODUCT` and return `{operations: []}` otherwise — so every create mutation in `app/routes` MUST pass `discountClasses: [PRODUCT]` (they do). Existing discounts created under the legacy API already carry `[PRODUCT]`.
 
@@ -27,7 +26,7 @@ Function IDs are stable per extension (production): product-discount `f23d62fa-4
 - `app/lib/capabilities.js` — the registry of everything the app does (title, summary, how-it-works bullets, kind, functionId/handle, route). The nav (`app/routes/app.jsx`), the dashboard (`app/routes/app._index.jsx`) and every capability page read from it — add/rename capabilities there, not in the pages.
 - `app/lib/discounts.server.js` — `fetchAppDiscounts(admin, {functionId})` lists the app's own discounts (loader-only). `app/lib/admin-urls.js` — client-safe `adminDiscountUrl(shop, id)`.
 - `app/components/CapabilityPage.jsx` — shared page shell (title, "How it works" panel, the page's form, "Discounts using this function" table). `app/components/DiscountsTable.jsx` — IndexTable with status badges.
-- Pages: `app.create-discount` (Tiered Sale), `app.createdynamiccombo` (Dynamic Combo), `app.create-combo` (Combo Builder tiers), `app.tiered-coupon`, `app.capped-discount`, `app.discount-config` (Coupon Value Limit), `app.bundles` (Bundles & free gifts: resource pickers → `app/lib/bundles.server.js` writes the three `custom.bundle_*` metafields and the `bundle-parent` tag; the list is `products(query:"tag:bundle-parent")` because Admin product search cannot filter on metafields).
+- Pages: `app.create-discount` (Tiered Sale), `app.createdynamiccombo` (Dynamic Combo), `app.create-combo` (Combo Builder tiers), `app.tiered-coupon`, `app.capped-discount`, `app.bundles` (Bundles & free gifts: resource pickers → `app/lib/bundles.server.js` writes the three `custom.bundle_*` metafields and the `bundle-parent` tag; the list is `products(query:"tag:bundle-parent")` because Admin product search cannot filter on metafields).
 - Never import a `*.server.js` module from component code (Remix Vite fails the build with "Server-only module referenced by client").
 
 ## Commands
@@ -39,7 +38,7 @@ cd extensions/<name> && npx vitest run         # unit tests (pure functions, no 
 npx shopify app function build --path extensions/<name>   # typegen + wasm
 npx shopify app function run --path extensions/<name> --export <toml export> --input /abs/path/input.json --json
 npx shopify app dev --store idrinkcoffee-dev.myshopify.com   # dev-store preview (pushes draft extensions)
-npx shopify app deploy --allow-updates --message "..."       # PRODUCTION: releases ALL 7 functions at once
+npx shopify app deploy --allow-updates --message "..."       # PRODUCTION: releases ALL 6 functions at once
 ```
 
 Always prefix CLI/pnpm commands with `npm_config_dangerously_allow_all_builds=true` — pnpm ≥10 blocks esbuild's postinstall and the Shopify CLI runs `pnpm install`/`pnpm exec graphql-code-generator` inside each extension dir, where root `pnpm-workspace.yaml` `allowBuilds` isn't consulted.
@@ -52,6 +51,7 @@ Always prefix CLI/pnpm commands with `npm_config_dangerously_allow_all_builds=tr
 
 ## Gotchas
 
+- `coupon-value-limit` (Discounts Allocator, `purchase.discounts-allocator.run`) was removed in Nov 2026: Shopify ended that developer preview on 2026-09-10, unregistered the functions and rejects any app version that still declares the target. The shop metafield `custom_discount_allocator.config` is now unused.
 - A thrown error inside a function blocks every cart on the store — parse metafields defensively and return no-ops.
 - Discount API targets are cart lines only (no `productVariant` targets); input queries must select line `id`.
 - `combodiscounts` (github.com/pranavchavda/combodiscounts, app "christmas-combos") is the sibling app on the same server; it owns `bundle_products` add-on discounts, POS-only codes and the Sweetbird sample picker.

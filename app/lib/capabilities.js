@@ -6,7 +6,6 @@
  *   automatic       – creates a DiscountAutomaticApp backed by a function
  *   code            – creates a DiscountCodeApp backed by a function
  *   cart-transform  – always-on, configured through product metafields
- *   allocator       – shop-level configuration for the discounts allocator
  */
 export const CAPABILITIES = [
   {
@@ -104,23 +103,6 @@ export const CAPABILITIES = [
     examples: [],
   },
   {
-    key: "coupon-value-limit",
-    title: "Coupon Value Limit",
-    shortTitle: "Coupon Value Limit",
-    route: "/app/discount-config",
-    kind: "allocator",
-    functionId: null,
-    functionHandle: "coupon-value-limit",
-    summary:
-      "Shop-wide caps on how much any discount code can take off a cart (Discounts Allocator, developer-preview API).",
-    howItWorks: [
-      "Configuration is stored on the shop metafield custom_discount_allocator.config.",
-      "Shopify's Discounts Allocator API is still developer-preview; it may not run on every store.",
-    ],
-    configSource: "Shop metafield custom_discount_allocator.config.",
-    examples: [],
-  },
-  {
     key: "bundles",
     title: "Bundles & free gifts",
     shortTitle: "Bundles",
@@ -155,5 +137,4 @@ export const KIND_LABEL = {
   automatic: "Automatic discount",
   code: "Discount code",
   "cart-transform": "Cart transform",
-  allocator: "Shop configuration",
 };
