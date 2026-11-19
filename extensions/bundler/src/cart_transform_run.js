@@ -17,6 +17,12 @@
  *   the bundle at $0 (one per parent unit). Any other value — including
  *   "declined" — is ignored, so the attribute alone can never make a random
  *   variant free.
+ * - Country split: carts in the US market (`localization.country.isoCode`
+ *   is "US") read ONLY the `_us` twins of the three metafields
+ *   (`custom.bundle_product_ids_us`, `custom.bundle_product_quantities_us`,
+ *   `custom.bundle_choice_ids_us`); every other country reads ONLY the
+ *   unsuffixed ones. There is no fallback between the two sets, so a product
+ *   without `_us` metafields simply has no gift for US carts.
  * - Every expanded item gets a `fixedPricePerUnit`: the parent keeps its own
  *   presentment price, gifts are 0. Because all components are fixed-priced,
  *   Shopify prices the bundle as the sum of the components, so the machine
@@ -29,6 +35,30 @@
 
 /** Hidden line attribute that carries the customer's bundle choice. */
 export const CHOICE_ATTRIBUTE = "_bundle_choice";
+
+/** Countries that use the `_us` metafield set instead of the default one. */
+const US_SET_COUNTRIES = ["US"];
+
+/**
+ * Pick the raw metafield values that apply to the cart's country.
+ * @param {RunInput["cart"]["lines"][number]["merchandise"] & {__typename: "ProductVariant"}} merchandise
+ * @param {string | null | undefined} country
+ */
+function bundleConfigFor(merchandise, country) {
+  const product = merchandise.product;
+  if (country && US_SET_COUNTRIES.includes(country)) {
+    return {
+      ids: product.bundleProductIdsUs?.value,
+      quantities: product.bundleProductQuantitiesUs?.value,
+      choiceIds: product.bundleChoiceIdsUs?.value,
+    };
+  }
+  return {
+    ids: product.bundleProductIds?.value,
+    quantities: product.bundleProductQuantities?.value,
+    choiceIds: product.bundleChoiceIds?.value,
+  };
+}
 
 /** Shopify caps `ExpandedItem.quantity` at 2000. */
 const MAX_EXPANDED_QUANTITY = 2000;
@@ -87,17 +117,18 @@ function fixedPrice(amount) {
  * is no (valid) choice. The value must be on the product's allow-list and must
  * not duplicate the parent or one of the fixed gifts.
  * @param {RunInput["cart"]["lines"][number]} line
+ * @param {string | null | undefined} allowListValue raw allow-list metafield value
  * @param {string} parentId
  * @param {string[]} giftIds
  * @returns {string | null}
  */
-function resolveChoice(line, parentId, giftIds) {
+function resolveChoice(line, allowListValue, parentId, giftIds) {
   const chosen = line.bundleChoice?.value?.trim();
   if (!chosen) return null;
   /** @type {string[]} */
   let allowed = [];
   try {
-    allowed = parseVariantIds(line.merchandise.product.bundleChoiceIds?.value);
+    allowed = parseVariantIds(allowListValue);
   } catch {
     return null; // a broken allow-list must not cost the customer the fixed gifts
   }
@@ -110,22 +141,21 @@ function resolveChoice(line, parentId, giftIds) {
  * Build the expand operation for one cart line, or null if the line is not a
  * bundle parent (or its configuration is unusable).
  * @param {RunInput["cart"]["lines"][number]} line
+ * @param {string | null | undefined} country ISO code of the cart's market country
  */
-function buildExpandOperation(line) {
+function buildExpandOperation(line, country) {
   const merchandise = line.merchandise;
   if (merchandise.__typename !== "ProductVariant") return null;
 
   const product = merchandise.product;
-  const giftIds = parseVariantIds(product.bundleProductIds?.value).filter(
+  const config = bundleConfigFor(merchandise, country);
+  const giftIds = parseVariantIds(config.ids).filter(
     (id) => id !== merchandise.id
   );
-  const choiceId = resolveChoice(line, merchandise.id, giftIds);
+  const choiceId = resolveChoice(line, config.choiceIds, merchandise.id, giftIds);
   if (giftIds.length === 0 && !choiceId) return null;
 
-  const giftQuantities = parseQuantities(
-    product.bundleProductQuantities?.value,
-    giftIds.length
-  );
+  const giftQuantities = parseQuantities(config.quantities, giftIds.length);
 
   const parentPrice = line.cost?.amountPerQuantity?.amount;
   if (parentPrice === undefined || parentPrice === null) return null;
@@ -175,12 +205,14 @@ export function cartTransformRun(input) {
   const lines = input?.cart?.lines;
   if (!Array.isArray(lines) || lines.length === 0) return NO_CHANGES;
 
+  const country = input?.localization?.country?.isoCode;
+
   const operations = [];
   for (const line of lines) {
     // A malformed metafield on one product must never take the whole cart
     // transform down (a thrown error blocks every cart on the store).
     try {
-      const operation = buildExpandOperation(line);
+      const operation = buildExpandOperation(line, country);
       if (operation) operations.push(operation);
     } catch {
       // skip this line

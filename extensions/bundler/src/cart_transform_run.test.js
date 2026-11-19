@@ -15,6 +15,9 @@ function line({
   quantities,
   choiceIds,
   choice,
+  usIds,
+  usQuantities,
+  usChoiceIds,
   typename = "ProductVariant",
 } = {}) {
   return {
@@ -32,6 +35,11 @@ function line({
         bundleProductQuantities:
           quantities === undefined ? null : { value: quantities },
         bundleChoiceIds: choiceIds === undefined ? null : { value: choiceIds },
+        bundleProductIdsUs: usIds === undefined ? null : { value: usIds },
+        bundleProductQuantitiesUs:
+          usQuantities === undefined ? null : { value: usQuantities },
+        bundleChoiceIdsUs:
+          usChoiceIds === undefined ? null : { value: usChoiceIds },
       },
     },
   };
@@ -279,6 +287,86 @@ describe("bundler cart transform", () => {
         },
       });
       expect(result.operations).toHaveLength(1);
+    });
+  });
+
+  describe("country split (_us metafields)", () => {
+    const inCountry = (isoCode, ...lines) => ({
+      localization: { country: { isoCode } },
+      cart: { lines },
+    });
+    const items = (result) =>
+      result.operations[0].lineExpand.expandedCartItems.map((i) => [
+        i.merchandiseId,
+        i.quantity,
+        i.price.adjustment.fixedPricePerUnit.amount,
+      ]);
+    const both = {
+      ids: JSON.stringify([COFFEE]),
+      quantities: "[2]",
+      usIds: JSON.stringify([SCALE]),
+      usQuantities: "[3]",
+    };
+
+    it("US carts get the _us gifts and quantities", () => {
+      expect(items(run(inCountry("US", line(both))))).toEqual([
+        [MACHINE, 1, "1999.00"],
+        [SCALE, 3, "0.00"],
+      ]);
+    });
+
+    it("CA and other countries get the default gifts", () => {
+      for (const c of ["CA", "GB"]) {
+        expect(items(run(inCountry(c, line(both))))).toEqual([
+          [MACHINE, 1, "1999.00"],
+          [COFFEE, 2, "0.00"],
+        ]);
+      }
+    });
+
+    it("missing localization behaves like the default set", () => {
+      expect(items(run({ cart: { lines: [line(both)] } }))).toEqual([
+        [MACHINE, 1, "1999.00"],
+        [COFFEE, 2, "0.00"],
+      ]);
+    });
+
+    it("no fallback: a US cart without _us metafields gets no gift", () => {
+      const l = line({ ids: JSON.stringify([COFFEE]) });
+      expect(run(inCountry("US", l))).toEqual({ operations: [] });
+    });
+
+    it("no fallback: a CA cart with only _us metafields gets no gift", () => {
+      const l = line({ usIds: JSON.stringify([SCALE]) });
+      expect(run(inCountry("CA", l))).toEqual({ operations: [] });
+    });
+
+    it("the choice allow-list is per country", () => {
+      const l = (choice) =>
+        line({
+          choiceIds: JSON.stringify([VANILLA]),
+          usChoiceIds: JSON.stringify([CARAMEL]),
+          choice,
+        });
+      expect(items(run(inCountry("US", l(CARAMEL))))).toEqual([
+        [MACHINE, 1, "1999.00"],
+        [CARAMEL, 1, "0.00"],
+      ]);
+      expect(run(inCountry("US", l(VANILLA)))).toEqual({ operations: [] });
+      expect(items(run(inCountry("CA", l(VANILLA))))).toEqual([
+        [MACHINE, 1, "1999.00"],
+        [VANILLA, 1, "0.00"],
+      ]);
+      expect(run(inCountry("CA", l(CARAMEL)))).toEqual({ operations: [] });
+    });
+
+    it("a malformed _us metafield only drops that line", () => {
+      const bad = line({ usIds: "{not json" });
+      const good = line({
+        id: "gid://shopify/CartLine/2",
+        usIds: JSON.stringify([SCALE]),
+      });
+      expect(run(inCountry("US", bad, good)).operations).toHaveLength(1);
     });
   });
 });

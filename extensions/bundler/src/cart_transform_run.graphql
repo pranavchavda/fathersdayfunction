@@ -1,4 +1,9 @@
 query CartTransformRun {
+  localization {
+    country {
+      isoCode
+    }
+  }
   cart {
     lines {
       id
@@ -33,6 +38,24 @@ query CartTransformRun {
             bundleChoiceIds: metafield(
               namespace: "custom"
               key: "bundle_choice_ids"
+            ) {
+              value
+            }
+            bundleProductIdsUs: metafield(
+              namespace: "custom"
+              key: "bundle_product_ids_us"
+            ) {
+              value
+            }
+            bundleProductQuantitiesUs: metafield(
+              namespace: "custom"
+              key: "bundle_product_quantities_us"
+            ) {
+              value
+            }
+            bundleChoiceIdsUs: metafield(
+              namespace: "custom"
+              key: "bundle_choice_ids_us"
             ) {
               value
             }

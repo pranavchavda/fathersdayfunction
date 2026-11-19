@@ -8,6 +8,7 @@ import {
   Button,
   ButtonGroup,
   Card,
+  Checkbox,
   Divider,
   IndexTable,
   InlineStack,
@@ -22,7 +23,7 @@ import { useAppBridge } from "@shopify/app-bridge-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { authenticate } from "../shopify.server";
 import { CapabilityPage } from "../components/CapabilityPage";
-import { BUNDLE_TAG, METAFIELDS } from "../lib/bundles";
+import { BUNDLE_TAG, METAFIELDS, usSameAsDefault } from "../lib/bundles";
 import { applyBundle, fetchBundleParents, removeBundle } from "../lib/bundles.server";
 
 /* ------------------------------------------------------------------ */
@@ -63,16 +64,27 @@ export const action = async ({ request }) => {
     }
 
     if (intent === "apply") {
-      const gifts = parse("gifts", [])
-        .filter((g) => g?.id?.startsWith?.("gid://shopify/ProductVariant/"))
-        .map((g) => ({
-          id: g.id,
-          quantity: Math.max(1, Math.min(2000, parseInt(g.quantity, 10) || 1)),
-        }));
-      const choiceIds = parse("choiceIds", []).filter((id) =>
-        id?.startsWith?.("gid://shopify/ProductVariant/")
-      );
-      if (gifts.length === 0 && choiceIds.length === 0) {
+      const cleanGifts = (key) =>
+        parse(key, [])
+          .filter((g) => g?.id?.startsWith?.("gid://shopify/ProductVariant/"))
+          .map((g) => ({
+            id: g.id,
+            quantity: Math.max(1, Math.min(2000, parseInt(g.quantity, 10) || 1)),
+          }));
+      const cleanIds = (key) =>
+        parse(key, []).filter((id) => id?.startsWith?.("gid://shopify/ProductVariant/"));
+
+      const gifts = cleanGifts("gifts");
+      const choiceIds = cleanIds("choiceIds");
+      // US-market set: either a copy of the default set or its own lists
+      // (empty = no gift for US carts).
+      const us =
+        formData.get("usSame") === "true"
+          ? { gifts, choiceIds }
+          : { gifts: cleanGifts("usGifts"), choiceIds: cleanIds("usChoiceIds") };
+
+      const empty = (set) => set.gifts.length === 0 && set.choiceIds.length === 0;
+      if (empty({ gifts, choiceIds }) && empty(us)) {
         return json({
           intent,
           errors: [
@@ -80,7 +92,7 @@ export const action = async ({ request }) => {
           ],
         });
       }
-      const result = await applyBundle(admin, { productIds, gifts, choiceIds });
+      const result = await applyBundle(admin, { productIds, gifts, choiceIds, us });
       return json({ intent, ...result });
     }
 
@@ -134,6 +146,129 @@ function ResultBanner({ data, onDismiss }) {
   );
 }
 
+/** Editable list of always-added free items with a per-unit quantity. */
+function GiftsSection({ title, emptyText, gifts, setGifts, onPick, busy }) {
+  return (
+    <BlockStack gap="200">
+      <InlineStack align="space-between" blockAlign="center">
+        <Text as="h3" variant="headingSm">
+          {title}
+        </Text>
+        <Button onClick={onPick} disabled={busy}>
+          {gifts.length ? "Change items" : "Pick variants"}
+        </Button>
+      </InlineStack>
+      {gifts.length === 0 ? (
+        <Text as="p" tone="subdued">
+          {emptyText}
+        </Text>
+      ) : (
+        <BlockStack gap="200">
+          {gifts.map((g) => (
+            <InlineStack key={g.id} gap="300" blockAlign="center" wrap={false}>
+              <Box width="120px">
+                <TextField
+                  label="Qty per unit"
+                  labelHidden
+                  type="number"
+                  min={1}
+                  max={2000}
+                  value={String(g.quantity)}
+                  onChange={(value) =>
+                    setGifts((prev) =>
+                      prev.map((x) =>
+                        x.id === g.id
+                          ? { ...x, quantity: Math.max(1, parseInt(value, 10) || 1) }
+                          : x
+                      )
+                    )
+                  }
+                  autoComplete="off"
+                  suffix="×"
+                />
+              </Box>
+              <Text as="span">{g.label}</Text>
+              <Button
+                variant="plain"
+                tone="critical"
+                onClick={() => setGifts((prev) => prev.filter((x) => x.id !== g.id))}
+              >
+                Remove
+              </Button>
+            </InlineStack>
+          ))}
+        </BlockStack>
+      )}
+    </BlockStack>
+  );
+}
+
+/** List of variants the shopper may pick ONE of. */
+function ChoicesSection({ title, emptyText, choices, setChoices, onPick, busy }) {
+  return (
+    <BlockStack gap="200">
+      <InlineStack align="space-between" blockAlign="center">
+        <Text as="h3" variant="headingSm">
+          {title}
+        </Text>
+        <InlineStack gap="200">
+          {choices.length > 0 && (
+            <Button variant="plain" tone="critical" onClick={() => setChoices([])}>
+              Clear
+            </Button>
+          )}
+          <Button onClick={onPick} disabled={busy}>
+            {choices.length ? "Change choices" : "Pick variants"}
+          </Button>
+        </InlineStack>
+      </InlineStack>
+      {choices.length === 0 ? (
+        <Text as="p" tone="subdued">
+          {emptyText}
+        </Text>
+      ) : (
+        <InlineStack gap="200" wrap>
+          {choices.map((c) => (
+            <Badge key={c.id} tone="info">
+              {c.label}
+            </Badge>
+          ))}
+        </InlineStack>
+      )}
+    </BlockStack>
+  );
+}
+
+/** Table cell summarising a row's US-market set. */
+function UsCell({ row }) {
+  const us = row.us || { gifts: [], choices: [] };
+  if (us.gifts.length === 0 && us.choices.length === 0) {
+    return (
+      <Text as="span" tone="subdued">
+        No US gift
+      </Text>
+    );
+  }
+  if (usSameAsDefault(row)) return <Text as="span">Same as default</Text>;
+  return (
+    <>
+      {us.gifts.map((g) => (
+        <div key={g.id}>
+          {g.quantity} × {g.label}
+        </div>
+      ))}
+      {us.choices.length > 0 && (
+        <div>
+          <Text as="span" tone="subdued">
+            Pick one:{" "}
+          </Text>
+          {us.choices.map((c) => c.label).join(" / ")}
+        </div>
+      )}
+    </>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
@@ -146,6 +281,11 @@ export default function BundlesPage() {
   const [selectedProducts, setSelectedProducts] = useState([]); // [{id,title}]
   const [gifts, setGifts] = useState([]); // [{id,label,quantity}]
   const [choices, setChoices] = useState([]); // [{id,label}]
+  // US-market set. While `usSame` is on, the default set is written to the
+  // _us metafields too; off = the two lists below (both empty = no US gift).
+  const [usSame, setUsSame] = useState(true);
+  const [usGifts, setUsGifts] = useState([]);
+  const [usChoices, setUsChoices] = useState([]);
   const [result, setResult] = useState(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
 
@@ -194,31 +334,37 @@ export default function BundlesPage() {
   // Variant pickers open without preselection: App Bridge's selectionIds
   // shape for variants ({id: product, variants: [...]}) isn't worth the risk
   // of a rejected call for a nicety.
-  const pickGifts = useCallback(async () => {
-    const picked = await pick(shopify, {
-      type: "variant",
-      multiple: true,
-      action: "select",
-    });
-    if (!picked) return;
-    setGifts(
-      picked.map((v) => ({
-        id: v.id,
-        label: variantLabel(v),
-        quantity: gifts.find((g) => g.id === v.id)?.quantity ?? 1,
-      }))
-    );
-  }, [shopify, gifts]);
+  const pickGiftsInto = useCallback(
+    async (setter) => {
+      const picked = await pick(shopify, {
+        type: "variant",
+        multiple: true,
+        action: "select",
+      });
+      if (!picked) return;
+      setter((prev) =>
+        picked.map((v) => ({
+          id: v.id,
+          label: variantLabel(v),
+          quantity: prev.find((g) => g.id === v.id)?.quantity ?? 1,
+        }))
+      );
+    },
+    [shopify]
+  );
 
-  const pickChoices = useCallback(async () => {
-    const picked = await pick(shopify, {
-      type: "variant",
-      multiple: true,
-      action: "select",
-    });
-    if (!picked) return;
-    setChoices(picked.map((v) => ({ id: v.id, label: variantLabel(v) })));
-  }, [shopify, choices]);
+  const pickChoicesInto = useCallback(
+    async (setter) => {
+      const picked = await pick(shopify, {
+        type: "variant",
+        multiple: true,
+        action: "select",
+      });
+      if (!picked) return;
+      setter(picked.map((v) => ({ id: v.id, label: variantLabel(v) })));
+    },
+    [shopify]
+  );
 
   /* ---- table ---- */
   const resourceName = { singular: "product", plural: "products" };
@@ -241,6 +387,20 @@ export default function BundlesPage() {
       }))
     );
     setChoices((first?.choices || []).map((c) => ({ id: c.id, label: c.label })));
+    const same = first ? usSameAsDefault(first) : true;
+    setUsSame(same);
+    setUsGifts(
+      same
+        ? []
+        : (first?.us?.gifts || []).map((g) => ({
+            id: g.id,
+            label: g.label,
+            quantity: g.quantity,
+          }))
+    );
+    setUsChoices(
+      same ? [] : (first?.us?.choices || []).map((c) => ({ id: c.id, label: c.label }))
+    );
     setResult(null);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -252,13 +412,17 @@ export default function BundlesPage() {
         productIds: JSON.stringify(productIds),
         gifts: JSON.stringify(gifts.map((g) => ({ id: g.id, quantity: g.quantity }))),
         choiceIds: JSON.stringify(choices.map((c) => c.id)),
+        usSame: String(usSame),
+        usGifts: JSON.stringify(usGifts.map((g) => ({ id: g.id, quantity: g.quantity }))),
+        usChoiceIds: JSON.stringify(usChoices.map((c) => c.id)),
       },
       { method: "POST" }
     );
   };
 
-  const canApply =
-    selectedProducts.length > 0 && (gifts.length > 0 || choices.length > 0) && !busy;
+  const hasDefaultSet = gifts.length > 0 || choices.length > 0;
+  const hasUsSet = usSame ? hasDefaultSet : usGifts.length > 0 || usChoices.length > 0;
+  const canApply = selectedProducts.length > 0 && (hasDefaultSet || hasUsSet) && !busy;
 
   const adminProductUrl = (id) =>
     `https://${shop}/admin/products/${id.split("/").pop()}`;
@@ -274,8 +438,9 @@ export default function BundlesPage() {
             </Text>
             <Text as="p" variant="bodySm">
               Pick every machine in the promo at once, add the free items and the
-              flavour choices, then Apply. Each product gets the three
-              <code> custom.bundle_*</code> metafields and the <code>{BUNDLE_TAG}</code>{" "}
+              flavour choices, then Apply. Each product gets the
+              <code> custom.bundle_*</code> metafields (plus their <code>_us</code>{" "}
+              twins for the US market) and the <code>{BUNDLE_TAG}</code>{" "}
               tag (which is how this page finds them again).
             </Text>
             <Text as="p" variant="bodySm" tone="subdued">
@@ -321,85 +486,58 @@ export default function BundlesPage() {
 
             <Divider />
 
-            <BlockStack gap="200">
-              <InlineStack align="space-between" blockAlign="center">
-                <Text as="h3" variant="headingSm">
-                  Free items (always added, at $0)
-                </Text>
-                <Button onClick={pickGifts} disabled={busy}>
-                  {gifts.length ? "Change items" : "Pick variants"}
-                </Button>
-              </InlineStack>
-              {gifts.length === 0 ? (
-                <Text as="p" tone="subdued">
-                  None — e.g. 2 × Essential Espresso.
-                </Text>
-              ) : (
-                <BlockStack gap="200">
-                  {gifts.map((g) => (
-                    <InlineStack key={g.id} gap="300" blockAlign="center" wrap={false}>
-                      <Box width="120px">
-                        <TextField
-                          label="Qty per unit"
-                          labelHidden
-                          type="number"
-                          min={1}
-                          max={2000}
-                          value={String(g.quantity)}
-                          onChange={(value) =>
-                            setGifts((prev) =>
-                              prev.map((x) =>
-                                x.id === g.id
-                                  ? { ...x, quantity: Math.max(1, parseInt(value, 10) || 1) }
-                                  : x
-                              )
-                            )
-                          }
-                          autoComplete="off"
-                          suffix="×"
-                        />
-                      </Box>
-                      <Text as="span">{g.label}</Text>
-                      <Button
-                        variant="plain"
-                        tone="critical"
-                        onClick={() => setGifts((prev) => prev.filter((x) => x.id !== g.id))}
-                      >
-                        Remove
-                      </Button>
-                    </InlineStack>
-                  ))}
-                </BlockStack>
-              )}
-            </BlockStack>
+            <Text as="h3" variant="headingMd">
+              Canada &amp; all other markets
+            </Text>
+            <GiftsSection
+              title="Free items (always added, at $0)"
+              emptyText="None — e.g. 2 × Essential Espresso."
+              gifts={gifts}
+              setGifts={setGifts}
+              onPick={() => pickGiftsInto(setGifts)}
+              busy={busy}
+            />
+            <ChoicesSection
+              title="Customer picks one of (optional, at $0)"
+              emptyText="None — e.g. Sweetbird Vanilla / Caramel / Hazelnut. The storefront shows a picker in the cart; the chosen one joins the bundle."
+              choices={choices}
+              setChoices={setChoices}
+              onPick={() => pickChoicesInto(setChoices)}
+              busy={busy}
+            />
 
             <Divider />
 
-            <BlockStack gap="200">
-              <InlineStack align="space-between" blockAlign="center">
-                <Text as="h3" variant="headingSm">
-                  Customer picks one of (optional, at $0)
-                </Text>
-                <Button onClick={pickChoices} disabled={busy}>
-                  {choices.length ? "Change choices" : "Pick variants"}
-                </Button>
-              </InlineStack>
-              {choices.length === 0 ? (
-                <Text as="p" tone="subdued">
-                  None — e.g. Sweetbird Vanilla / Caramel / Hazelnut. The
-                  storefront shows a picker in the cart; the chosen one joins the
-                  bundle.
-                </Text>
-              ) : (
-                <InlineStack gap="200" wrap>
-                  {choices.map((c) => (
-                    <Badge key={c.id} tone="info">
-                      {c.label}
-                    </Badge>
-                  ))}
-                </InlineStack>
-              )}
-            </BlockStack>
+            <Text as="h3" variant="headingMd">
+              United States market
+            </Text>
+            <Checkbox
+              label="Same gifts as above"
+              helpText="US carts only ever get the US set. Untick to give US shoppers different gifts — or leave both US lists empty for no US gift."
+              checked={usSame}
+              onChange={setUsSame}
+              disabled={busy}
+            />
+            {!usSame && (
+              <>
+                <GiftsSection
+                  title="US free items (always added, at $0)"
+                  emptyText="None — US carts get no fixed free item."
+                  gifts={usGifts}
+                  setGifts={setUsGifts}
+                  onPick={() => pickGiftsInto(setUsGifts)}
+                  busy={busy}
+                />
+                <ChoicesSection
+                  title="US customer picks one of (optional, at $0)"
+                  emptyText="None — no US flavour choice."
+                  choices={usChoices}
+                  setChoices={setUsChoices}
+                  onPick={() => pickChoicesInto(setUsChoices)}
+                  busy={busy}
+                />
+              </>
+            )}
 
             <InlineStack gap="200">
               <Button
@@ -416,6 +554,9 @@ export default function BundlesPage() {
                   setSelectedProducts([]);
                   setGifts([]);
                   setChoices([]);
+                  setUsSame(true);
+                  setUsGifts([]);
+                  setUsChoices([]);
                   setResult(null);
                 }}
                 disabled={busy}
@@ -458,6 +599,7 @@ export default function BundlesPage() {
               { title: "Product" },
               { title: "Free items" },
               { title: "Customer choice" },
+              { title: "US market" },
               { title: "Status" },
             ]}
             emptyState={
@@ -504,6 +646,9 @@ export default function BundlesPage() {
                   ) : (
                     p.choices.map((c) => <div key={c.id}>{c.label}</div>)
                   )}
+                </IndexTable.Cell>
+                <IndexTable.Cell>
+                  <UsCell row={p} />
                 </IndexTable.Cell>
                 <IndexTable.Cell>
                   <Badge tone={p.status === "ACTIVE" ? "success" : undefined}>

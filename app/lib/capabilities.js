@@ -133,11 +133,12 @@ export const CAPABILITIES = [
     howItWorks: [
       "Free items: custom.bundle_product_ids (variants) + custom.bundle_product_quantities (index-aligned, default 1) are always added.",
       "Customer choice: custom.bundle_choice_ids lists variants the shopper may pick ONE of; the storefront cart shows a picker and stores the pick in the hidden line attribute _bundle_choice.",
+      "US market: carts in the US read ONLY the _us twins (custom.bundle_product_ids_us, custom.bundle_product_quantities_us, custom.bundle_choice_ids_us); every other market reads ONLY the unsuffixed ones. No fallback — a product without _us values has no gift for US shoppers.",
       "The parent keeps its full price; every bundled item is priced at $0 in cart, checkout and the order. Quantities scale with the parent line.",
       "Use the form on this page to apply one configuration to many products at once; it also tags them bundle-parent so they show up in the list below.",
     ],
     configSource:
-      "Product metafields custom.bundle_product_ids, custom.bundle_product_quantities, custom.bundle_choice_ids (+ tag bundle-parent).",
+      "Product metafields custom.bundle_product_ids, custom.bundle_product_quantities, custom.bundle_choice_ids, their _us twins for the US market (+ tag bundle-parent).",
     examples: ["2 × Essential Espresso + free Sweetbird syrup with a machine", "Jura E8 milk accessories"],
   },
 ];
